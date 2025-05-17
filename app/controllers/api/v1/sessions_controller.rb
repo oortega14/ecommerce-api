@@ -1,7 +1,7 @@
 class Api::V1::SessionsController < ApplicationController
   skip_before_action :authorized, only: [ :create ]
-  skip_before_action :admin_authorized, only: [ :create, :destroy ]
 
+  # POST: '/api/v1/sessions'
   def create
     @user = User.find_by(email: params[:user][:email])
     if @user && @user.authenticate(params[:user][:password])
@@ -12,6 +12,7 @@ class Api::V1::SessionsController < ApplicationController
     end
   end
 
+  # DELETE: '/api/v1/sessions'
   def destroy
     render json: { message: 'Logged out successfully' }, status: :ok
   end

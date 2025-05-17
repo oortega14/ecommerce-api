@@ -74,6 +74,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_05_16_222358) do
 
   create_table "categories", force: :cascade do |t|
     t.string "name"
+    t.text "description"
     t.bigint "creator_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -116,7 +117,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_05_16_222358) do
     t.string "name"
     t.string "email"
     t.string "password_digest"
-    t.integer "role"
+    t.integer "role", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end

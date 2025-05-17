@@ -1,14 +1,14 @@
 class Api::V1::ProductsController < ApplicationController
-  skip_before_action :admin_authorized, only: [ :index, :show ]
+  before_action :admin_authorized, except: [ :index, :show ]
   before_action :set_product, only: [ :show, :update, :destroy ]
 
   def index
-    products = Product.includes(:categories, :creator).all
-    render json: products
+    products = Product.includes(:categories, :attachments, :creator).all
+    render json: products, include: [ :categories, :attachments ]
   end
 
   def show
-    render json: @product, include: [ :categories ]
+    render json: @product, include: [ :categories, :attachments ]
   end
 
   def create
@@ -17,11 +17,7 @@ class Api::V1::ProductsController < ApplicationController
       product.creator = current_user
 
       if product.save
-        if params[:product][:category_ids].present?
-          product.category_ids = params[:product][:category_ids]
-        end
-
-        render json: product, status: :created
+        render json: product, include: [ :categories, :attachments ], status: :created
       else
         render json: { errors: product.errors.full_messages }, status: :unprocessable_entity
       end
@@ -31,11 +27,7 @@ class Api::V1::ProductsController < ApplicationController
   def update
     Product.transaction do
       if @product.update(product_params)
-        if params[:product][:category_ids].present?
-          @product.category_ids = params[:product][:category_ids]
-        end
-
-        render json: @product
+        render json: @product, include: [ :categories, :attachments ]
       else
         render json: { errors: @product.errors.full_messages }, status: :unprocessable_entity
       end
@@ -50,12 +42,23 @@ class Api::V1::ProductsController < ApplicationController
   private
 
   def set_product
-    @product = Product.includes(:categories).find(params[:id])
+    @product = Product.includes(:categories, :attachments).find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Product not found' }, status: :not_found
   end
 
   def product_params
-    params.require(:product).permit(:name, :description, :price, :stock)
+    params.require(:product).permit(
+      :name,
+      :description,
+      :price,
+      :stock,
+      category_ids: [],
+      attachments_attributes: [
+        :id,
+        :_destroy,
+        image: []
+      ]
+    )
   end
 end

@@ -1,7 +1,6 @@
 class ApplicationController < ActionController::API
   # Before Actions
   before_action :authorized
-  before_action :admin_authorized
 
   def encode_token(payload)
     JWT.encode(payload, jwt_secret_key)

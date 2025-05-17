@@ -56,6 +56,7 @@ group :development, :test do
   gem 'factory_bot', '~> 6.5'
   gem 'capybara', '~> 3.40'
   gem 'rubocop', '~> 1.75'
+  gem 'shoulda-matchers', '~> 6.1'
 
   # Search for N+1 queries
   gem 'bullet', '~> 8.0'
