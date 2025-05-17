@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body>
+    <h1>Confirmación de tu compra: <%= @product.name %></h1>
+    
+    <p>Hola <%= @user.email %>,</p>
+    
+    <p>¡Gracias por tu compra! Hemos recibido tu pedido correctamente.</p>
+    
+    <h2>Detalles de tu compra:</h2>
+    <ul>
+      <li><strong>Producto:</strong> <%= @product.name %></li>
+      <li><strong>Cantidad:</strong> <%= @purchase.quantity %></li>
+      <li><strong>Precio unitario:</strong> $<%= sprintf("%.2f", @product.price) %></li>
+      <li><strong>Subtotal:</strong> $<%= sprintf("%.2f", @product.price * @purchase.quantity) %></li>
+      <li><strong>Costo de envío:</strong> $<%= sprintf("%.2f", @shipping_cost) %></li>
+      <li><strong>Total:</strong> $<%= sprintf("%.2f", @purchase.total_price + @shipping_cost) %></li>
+      <li><strong>Fecha de compra:</strong> <%= @purchase.created_at.strftime("%d/%m/%Y %H:%M") %></li>
+    </ul>
+    
+    <h2>Información del producto:</h2>
+    <ul>
+      <li><strong>Peso:</strong> <%= @product.weight %> kg</li>
+      <li><strong>Dimensiones:</strong> <%= @product.dimensions %></li>
+    </ul>
+    
+    <p>Tu pedido será procesado y enviado en los próximos días hábiles. Recibirás otro correo con la información de seguimiento una vez que el producto haya sido enviado.</p>
+    
+    <p>Si tienes alguna pregunta sobre tu pedido, no dudes en contactarnos.</p>
+    
+    <p>¡Gracias por tu compra!</p>
+    
+    <p>Saludos,<br>
+    El equipo de Ecommerce API</p>
+  </body>
+</html>

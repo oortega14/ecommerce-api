@@ -6,7 +6,7 @@ class User < ApplicationRecord
   audited
 
   # Enums
-  enum role: { client: 0, admin: 1 }
+  enum :role, { :client=>0, :admin=>1 }
 
   # Associations
   has_many :purchases, foreign_key: 'client_id'

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body>
+    <h1>Tu enlace de descarga para <%= @product.name %></h1>
+    
+    <p>Hola <%= @user.email %>,</p>
+    
+    <p>Gracias por tu compra del producto digital <strong><%= @product.name %></strong>.</p>
+    
+    <p>Puedes descargar tu producto utilizando el siguiente enlace:</p>
+    
+    <p>
+      <a href="<%= @download_url %>" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">
+        Descargar <%= @product.name %> (<%= @product.file_format %>, <%= @product.file_size %> KB)
+      </a>
+    </p>
+    
+    <p><strong>Nota importante:</strong> Este enlace es personal y no debe ser compartido con otras personas.</p>
+    
+    <p>Informaciu00f3n adicional:</p>
+    <ul>
+      <li><strong>Formato:</strong> <%= @product.file_format %></li>
+      <li><strong>Tamau00f1o:</strong> <%= @product.file_size %> KB</li>
+    </ul>
+    
+    <p>Si tienes problemas con la descarga, no dudes en contactarnos.</p>
+    
+    <p>u00a1Gracias por tu compra!</p>
+    
+    <p>Saludos,<br>
+    El equipo de Ecommerce API</p>
+  </body>
+</html>

@@ -8,7 +8,11 @@ abort("The Rails environment is running in production mode!") if Rails.env.produ
 
 require 'rspec/rails'
 
+# Cargar explícitamente los archivos de soporte
 Dir[Rails.root.join('spec', 'support', '**', '*.rb')].sort.each { |f| require f }
+
+# Cargar explícitamente las fábricas
+Dir[Rails.root.join('spec', 'factories', '**', '*.rb')].sort.each { |f| require f }
 
 begin
   ActiveRecord::Migration.maintain_test_schema!
@@ -33,6 +37,9 @@ RSpec.configure do |config|
 
   # Configuración para pruebas de tiempo
   config.include ActiveSupport::Testing::TimeHelpers
+
+  # Configuración de FactoryBot
+  config.include FactoryBot::Syntax::Methods
 end
 
 Shoulda::Matchers.configure do |config|

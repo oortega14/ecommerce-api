@@ -96,6 +96,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_05_16_222358) do
     t.decimal "price"
     t.integer "stock"
     t.string "type"
+    t.decimal "weight", precision: 8, scale: 2
+    t.string "dimensions"
+    t.integer "file_size"
+    t.string "file_format"
+    t.string "download_url"
     t.bigint "creator_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

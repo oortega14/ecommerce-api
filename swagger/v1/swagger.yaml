@@ -3,6 +3,7 @@ openapi: 3.0.1
 info:
   title: API V1
   version: v1
+  description: API de Ecommerce
 components:
   securitySchemes:
     bearer_auth:
@@ -10,6 +11,850 @@ components:
       scheme: bearer
       bearerFormat: JWT
 paths:
+  "/api/v1/categories":
+    get:
+      summary: Lists all categories
+      tags:
+      - Categories
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: categories found
+    post:
+      summary: Creates a category
+      tags:
+      - Categories
+      security:
+      - bearer_auth: []
+      parameters: []
+      responses:
+        '201':
+          description: category created
+        '403':
+          description: forbidden for non-admin users
+        '422':
+          description: invalid request
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: Electronics
+                    description:
+                      type: string
+                      example: Electronic devices and gadgets
+                  required:
+                  - name
+  "/api/v1/categories/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: category id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: Retrieves a category
+      tags:
+      - Categories
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: category found
+        '404':
+          description: category not found
+    patch:
+      summary: Updates a category
+      tags:
+      - Categories
+      security:
+      - bearer_auth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: category updated with new products
+        '403':
+          description: forbidden for non-admin users
+        '404':
+          description: category not found
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    product_ids:
+                      type: array
+                      items:
+                        type: integer
+    delete:
+      summary: Deletes a category
+      tags:
+      - Categories
+      security:
+      - bearer_auth: []
+      responses:
+        '204':
+          description: category deleted
+        '403':
+          description: forbidden for non-admin users
+        '404':
+          description: category not found
+  "/api/v1/digital_products":
+    get:
+      summary: Lista todos los productos digitales
+      tags:
+      - Productos Digitales
+      responses:
+        '200':
+          description: lista de productos digitales
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    price:
+                      type: string
+                    stock:
+                      type: integer
+                    type:
+                      type: string
+                    download_url:
+                      type: string
+                    file_size:
+                      type: integer
+                    file_format:
+                      type: string
+                    creator_id:
+                      type: integer
+                    created_at:
+                      type: string
+                      format: date-time
+                    updated_at:
+                      type: string
+                      format: date-time
+                    categories:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          name:
+                            type: string
+                    attachments:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          url:
+                            type: string
+    post:
+      summary: Crea un nuevo producto digital
+      tags:
+      - Productos Digitales
+      security:
+      - bearer_auth: []
+      parameters: []
+      responses:
+        '201':
+          description: producto digital creado
+        '422':
+          description: datos invu00e1lidos
+        '403':
+          description: no autorizado (no es administrador)
+        '401':
+          description: no autenticado
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                digital_product:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    price:
+                      type: string
+                    download_url:
+                      type: string
+                    file_size:
+                      type: integer
+                    file_format:
+                      type: string
+                    category_ids:
+                      type: array
+                      items:
+                        type: integer
+                  required:
+                  - name
+                  - price
+                  - download_url
+                  - file_size
+                  - file_format
+  "/api/v1/digital_products/{id}":
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    get:
+      summary: Obtiene un producto digital especu00edfico
+      tags:
+      - Productos Digitales
+      responses:
+        '200':
+          description: producto digital encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  description:
+                    type: string
+                  price:
+                    type: string
+                  stock:
+                    type: integer
+                  type:
+                    type: string
+                  download_url:
+                    type: string
+                  file_size:
+                    type: integer
+                  file_format:
+                    type: string
+                  creator_id:
+                    type: integer
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+        '404':
+          description: producto digital no encontrado
+    put:
+      summary: Actualiza un producto digital
+      tags:
+      - Productos Digitales
+      security:
+      - bearer_auth: []
+      parameters: []
+      responses:
+        '200':
+          description: producto digital actualizado
+        '403':
+          description: no autorizado (no es administrador)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                digital_product:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    price:
+                      type: string
+                    download_url:
+                      type: string
+                    file_size:
+                      type: integer
+                    file_format:
+                      type: string
+                    category_ids:
+                      type: array
+                      items:
+                        type: integer
+    delete:
+      summary: Elimina un producto digital
+      tags:
+      - Productos Digitales
+      security:
+      - bearer_auth: []
+      responses:
+        '204':
+          description: producto digital eliminado
+        '403':
+          description: no autorizado (no es administrador)
+  "/api/v1/digital_products/{id}/purchase":
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    post:
+      summary: Compra un producto digital
+      tags:
+      - Productos Digitales
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: producto digital comprado exitosamente
+        '401':
+          description: no autenticado
+  "/api/v1/physical_products":
+    get:
+      summary: Lista todos los productos fu00edsicos
+      tags:
+      - Productos Fu00edsicos
+      responses:
+        '200':
+          description: lista de productos fu00edsicos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    price:
+                      type: string
+                    stock:
+                      type: integer
+                    type:
+                      type: string
+                    weight:
+                      type: string
+                    dimensions:
+                      type: string
+                    creator_id:
+                      type: integer
+                    created_at:
+                      type: string
+                      format: date-time
+                    updated_at:
+                      type: string
+                      format: date-time
+                    categories:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          name:
+                            type: string
+                    attachments:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          url:
+                            type: string
+    post:
+      summary: Crea un nuevo producto fu00edsico
+      tags:
+      - Productos Fu00edsicos
+      security:
+      - bearer_auth: []
+      parameters: []
+      responses:
+        '201':
+          description: producto fu00edsico creado
+        '422':
+          description: datos invu00e1lidos
+        '403':
+          description: no autorizado (no es administrador)
+        '401':
+          description: no autenticado
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                physical_product:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    price:
+                      type: string
+                    stock:
+                      type: integer
+                    weight:
+                      type: string
+                    dimensions:
+                      type: string
+                    category_ids:
+                      type: array
+                      items:
+                        type: integer
+                  required:
+                  - name
+                  - price
+                  - stock
+                  - weight
+                  - dimensions
+  "/api/v1/physical_products/{id}":
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    get:
+      summary: Obtiene un producto fu00edsico especu00edfico
+      tags:
+      - Productos Fu00edsicos
+      responses:
+        '200':
+          description: producto fu00edsico encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  description:
+                    type: string
+                  price:
+                    type: string
+                  stock:
+                    type: integer
+                  type:
+                    type: string
+                  weight:
+                    type: string
+                  dimensions:
+                    type: string
+                  creator_id:
+                    type: integer
+                  created_at:
+                    type: string
+                    format: date-time
+                  updated_at:
+                    type: string
+                    format: date-time
+        '404':
+          description: producto fu00edsico no encontrado
+    put:
+      summary: Actualiza un producto fu00edsico
+      tags:
+      - Productos Fu00edsicos
+      security:
+      - bearer_auth: []
+      parameters: []
+      responses:
+        '200':
+          description: producto fu00edsico actualizado
+        '422':
+          description: datos invu00e1lidos
+        '403':
+          description: no autorizado (no es administrador)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                physical_product:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    price:
+                      type: string
+                    stock:
+                      type: integer
+                    weight:
+                      type: string
+                    dimensions:
+                      type: string
+                    category_ids:
+                      type: array
+                      items:
+                        type: integer
+    delete:
+      summary: Elimina un producto fu00edsico
+      tags:
+      - Productos Fu00edsicos
+      security:
+      - bearer_auth: []
+      responses:
+        '204':
+          description: producto fu00edsico eliminado
+        '403':
+          description: no autorizado (no es administrador)
+  "/api/v1/physical_products/{id}/purchase":
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    - name: quantity
+      in: query
+      required: false
+      description: Cantidad a comprar (por defecto 1)
+      schema:
+        type: integer
+    post:
+      summary: Compra un producto fu00edsico
+      tags:
+      - Productos Fu00edsicos
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: producto fu00edsico comprado exitosamente
+        '422':
+          description: error por stock insuficiente
+        '401':
+          description: no autenticado
+  "/api/v1/physical_products/{id}/shipping_cost":
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    get:
+      summary: Calcula el costo de envu00edo para un producto fu00edsico
+      tags:
+      - Productos Fu00edsicos
+      responses:
+        '200':
+          description: costo de envu00edo calculado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shipping_cost:
+                    type: number
+        '404':
+          description: producto fu00edsico no encontrado
+  "/api/v1/purchases":
+    get:
+      summary: Lists purchases
+      tags:
+      - Purchases
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: purchases found
+        '401':
+          description: unauthorized
+    post:
+      summary: Creates a purchase
+      tags:
+      - Purchases
+      security:
+      - bearer_auth: []
+      parameters: []
+      responses:
+        '201':
+          description: purchase created
+        '422':
+          description: invalid request
+        '401':
+          description: unauthorized
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                purchase:
+                  type: object
+                  properties:
+                    product_id:
+                      type: integer
+                    quantity:
+                      type: integer
+                  required:
+                  - product_id
+                  - quantity
+  "/api/v1/purchases/{id}":
+    get:
+      summary: Retrieves a purchase
+      tags:
+      - Purchases
+      security:
+      - bearer_auth: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: purchase found
+        '404':
+          description: purchase not found
+        '401':
+          description: unauthorized
+  "/api/v1/sessions":
+    post:
+      summary: Authenticates user
+      tags:
+      - Sessions
+      parameters: []
+      responses:
+        '200':
+          description: user authenticated
+        '401':
+          description: invalid credentials
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                    password:
+                      type: string
+                  required:
+                  - email
+                  - password
+  "/api/v1/logout":
+    delete:
+      summary: Logs out user
+      tags:
+      - Sessions
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: logged out successfully
+        '401':
+          description: unauthorized
+  "/api/v1/stats/top_products":
+    get:
+      summary: Obtiene los productos más vendidos por cantidad para cada categoría
+      tags:
+      - Estadísticas
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: lista de productos más vendidos por categoría
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    category_name:
+                      type: string
+                    top_products:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          name:
+                            type: string
+                          quantity_sold:
+                            type: integer
+        '401':
+          description: no autenticado
+        '403':
+          description: no autorizado (no es administrador)
+  "/api/v1/stats/most_purchased":
+    get:
+      summary: Obtiene los productos que más han recaudado por categoría
+      tags:
+      - Estadísticas
+      security:
+      - bearer_auth: []
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        description: Límite de productos por categoría (por defecto 3)
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: lista de productos que más han recaudado por categoría
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    category_name:
+                      type: string
+                    top_products:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          name:
+                            type: string
+                          total_revenue:
+                            type: string
+        '401':
+          description: no autenticado
+        '403':
+          description: no autorizado (no es administrador)
+  "/api/v1/stats/purchases":
+    get:
+      summary: Obtiene listado de compras con filtros opcionales
+      tags:
+      - Estadísticas
+      security:
+      - bearer_auth: []
+      parameters:
+      - name: start_date
+        in: query
+        required: false
+        description: Fecha de inicio (formato YYYY-MM-DD)
+        schema:
+          type: string
+      - name: end_date
+        in: query
+        required: false
+        description: Fecha de fin (formato YYYY-MM-DD)
+        schema:
+          type: string
+      - name: category_id
+        in: query
+        required: false
+        description: ID de la categoría
+        schema:
+          type: integer
+      - name: client_id
+        in: query
+        required: false
+        description: ID del cliente
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: compras filtradas por cliente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    client_id:
+                      type: integer
+                    product_id:
+                      type: integer
+                    quantity:
+                      type: integer
+                    total_price:
+                      type: string
+                    created_at:
+                      type: string
+                      format: date-time
+                    product_name:
+                      type: string
+                    client_email:
+                      type: string
+        '401':
+          description: no autorizado
+  "/api/v1/stats/purchase_counts":
+    get:
+      summary: Obtiene conteo de compras agrupadas por tiempo
+      tags:
+      - Estadísticas
+      security:
+      - bearer_auth: []
+      parameters:
+      - name: granularity
+        in: query
+        required: false
+        description: "Granularidad de tiempo (hour, day, week, year):\n * `hour` \n
+          * `day` \n * `week` \n * `year` \n "
+        enum:
+        - hour
+        - day
+        - week
+        - year
+        schema:
+          type: string
+      responses:
+        '200':
+          description: conteo de compras agrupadas por hora
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+        '401':
+          description: no autorizado
   "/api/v1/users":
     get:
       summary: Lists all client users
@@ -54,33 +899,6 @@ paths:
                   - email
                   - password
                   - password_confirmation
-  "/api/v1/sessions":
-    post:
-      summary: Authenticates user
-      tags:
-      - Users
-      parameters: []
-      responses:
-        '200':
-          description: user authenticated
-        '401':
-          description: invalid credentials
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user:
-                  type: object
-                  properties:
-                    email:
-                      type: string
-                    password:
-                      type: string
-                  required:
-                  - email
-                  - password
   "/api/v1/users/{id}":
     parameters:
     - name: id

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body>
+    <h1>Reporte de compras del <%= @date.strftime("%d/%m/%Y") %></h1>
+    
+    <p>Estimados administradores,</p>
+    
+    <p>A continuaciu00f3n se presenta el reporte de compras realizadas durante el du00eda <%= @date.strftime("%d/%m/%Y") %>.</p>
+    
+    <h2>Resumen de ventas:</h2>
+    <p><strong>Total de compras:</strong> <%= @purchases.count %></p>
+    <p><strong>Ingresos totales:</strong> $<%= sprintf("%.2f", @total_daily_revenue) %></p>
+    
+    <% if @products_summary.any? %>
+      <h2>Detalle por producto:</h2>
+      <table border="1" cellpadding="5" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Tipo</th>
+            <th>Cantidad vendida</th>
+            <th>Nu00famero de compras</th>
+            <th>Ingresos generados</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @products_summary.each do |product_id, data| %>
+            <tr>
+              <td><%= data[:product].name %></td>
+              <td><%= data[:product].type || 'Producto' %></td>
+              <td align="center"><%= data[:total_quantity] %></td>
+              <td align="center"><%= data[:purchases_count] %></td>
+              <td align="right">$<%= sprintf("%.2f", data[:total_revenue]) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" align="right"><strong>Total:</strong></td>
+            <td align="right"><strong>$<%= sprintf("%.2f", @total_daily_revenue) %></strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    <% else %>
+      <p><em>No se registraron compras en este du00eda.</em></p>
+    <% end %>
+    
+    <p>Este reporte se genera automu00e1ticamente. Para ver mu00e1s detalles, accede al panel de administraciu00f3n.</p>
+    
+    <p>Saludos,<br>
+    Sistema Automu00e1tico de Ecommerce API</p>
+  </body>
+</html>

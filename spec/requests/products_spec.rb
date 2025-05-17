@@ -1,310 +1,243 @@
-require 'swagger_helper'
+require 'rails_helper'
 
 RSpec.describe 'Products API', type: :request do
-  let(:admin) { User.create!(email: 'admin@example.com', password: 'password123', password_confirmation: 'password123', role: 'admin') }
-  let(:client) { User.create!(email: 'client@example.com', password: 'password123', password_confirmation: 'password123', role: 'client') }
-  let(:category) { Category.create!(name: 'Electronics', creator: admin) }
+  # Usar FactoryBot para crear los objetos de prueba
+  let(:admin) { create(:user, :admin) }
+  let(:client) { create(:user) } # Por defecto, los usuarios son clientes
+  let(:category) { create(:category) } # La fábrica ya asocia un creator
   let(:test_image) { Rack::Test::UploadedFile.new(Rails.root.join('spec', 'fixtures', 'files', 'test_image.jpg'), 'image/jpeg') }
 
-  path '/api/v1/products' do
-    post 'Creates a product' do
-      tags 'Products'
-      consumes 'multipart/form-data'
-      produces 'application/json'
-      security [ bearer_auth: [] ]
+  describe "POST /api/v1/products" do
+    context "como administrador" do
+      it "crea un producto con datos válidos" do
+        product_attributes = attributes_for(:product)
 
-      parameter name: :product, in: :formData, schema: {
-        type: :object,
-        properties: {
-          'product[name]': { type: :string },
-          'product[price]': { type: :number },
-          'product[stock]': { type: :integer },
-          'product[category_ids][]': { type: :array, items: { type: :integer } },
-          'product[attachments_attributes][][image]': {
-            type: :array,
-            items: { type: :string, format: :binary },
-            description: 'Array of image files'
-          }
-        },
-        required: [ 'product[name]', 'product[price]', 'product[stock]' ]
-      }
+        expect {
+          post "/api/v1/products",
+               params: {
+                 product: product_attributes.merge(
+                   category_ids: [ category.id ],
+                   attachments_attributes: [ { image: test_image } ]
+                 )
+               },
+               headers: { 'Authorization' => "Bearer #{token_for(admin)}" }
+        }.to change(Product, :count).by(1)
 
-      response '201', 'product created' do
-        let(:Authorization) { "Bearer #{token_for(admin)}" }
-        let(:product) do
-          {
-            'product[name]': 'New Laptop',
-            'product[price]': 999.99,
-            'product[stock]': 10,
-            'product[category_ids][]': [ category.id ],
-            'product[attachments_attributes][]': {
-              image: test_image
-            }
-          }
-        end
-
-        run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data['name']).to eq('New Laptop')
-          expect(data['price'].to_f).to eq(999.99)
-          expect(data['stock']).to eq(10)
-          expect(data['categories']).to include(hash_including('id' => category.id))
-          expect(data['attachments'].length).to eq(1)
-          expect(data['attachments'].first['image_url']).to be_present
-        end
+        expect(response).to have_http_status(:created)
+        data = JSON.parse(response.body)
+        expect(data['name']).to eq(product_attributes[:name])
+        expect(data['price'].to_f).to eq(product_attributes[:price])
+        expect(data['stock']).to eq(product_attributes[:stock])
+        expect(data['categories']).to include(hash_including('id' => category.id))
+        expect(data['attachments'].length).to eq(1)
+        product = Product.find(data['id'])
+        expect(product.attachments.count).to eq(1)
       end
 
-      response '422', 'invalid request' do
-        let(:Authorization) { "Bearer #{token_for(admin)}" }
-        let(:product) do
-          {
-            'product[name]': '',
-            'product[price]': -10,
-            'product[stock]': -1
-          }
-        end
+      it "devuelve errores con datos inválidos" do
+        post "/api/v1/products",
+             params: {
+               product: {
+                 name: '',
+                 price: -10,
+                 stock: -1,
+                 attachments_attributes: [ { image: test_image } ]
+               }
+             },
+             headers: { 'Authorization' => "Bearer #{token_for(admin)}" }
 
-        run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data['errors']).to include("Name can't be blank")
-          expect(data['errors']).to include("Price is not a number")
-          expect(data['errors']).to include("Stock is not a number")
-        end
-      end
-
-      response '401', 'unauthorized' do
-        let(:Authorization) { "Bearer #{token_for(client)}" }
-        let(:product) do
-          {
-            'product[name]': 'New Laptop',
-            'product[price]': 999.99,
-            'product[stock]': 10
-          }
-        end
-
-        run_test!
+        expect(response).to have_http_status(:unprocessable_entity)
+        data = JSON.parse(response.body)
+        expect(data['errors']).to include("Name can't be blank")
+        expect(data['errors']).to include("Price must be greater than or equal to 0")
+        expect(data['errors']).to include("Stock must be greater than or equal to 0")
       end
     end
 
-    get 'Lists products' do
-      tags 'Products'
-      produces 'application/json'
+    context "como cliente" do
+      it "devuelve un error de autorización" do
+        product_attributes = attributes_for(:product)
 
-      response '200', 'products found' do
-        before do
-          Product.create!(
-            name: 'Laptop',
-            price: 999.99,
-            stock: 10,
-            creator: admin,
-            categories: [ category ]
-          )
-        end
+        post "/api/v1/products",
+             params: {
+               product: product_attributes.merge(
+                 attachments_attributes: [ { image: test_image } ]
+               )
+             },
+             headers: { 'Authorization' => "Bearer #{token_for(client)}" }
 
-        run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data.length).to eq(1)
-          expect(data.first['name']).to eq('Laptop')
-          expect(data.first['categories']).to include(hash_including('id' => category.id))
-        end
+        expect(response).to have_http_status(:forbidden)
       end
     end
   end
 
-  path '/api/v1/products/{id}' do
-    parameter name: 'id', in: :path, type: :string
+  describe "GET /api/v1/products" do
+    context "como administrador" do
+      it "lista los productos" do
+        create(:product, :with_categories, creator: admin)
 
-    get 'Retrieves a product' do
-      tags 'Products'
-      produces 'application/json'
+        get "/api/v1/products", headers: { 'Authorization' => "Bearer #{token_for(admin)}" }
 
-      response '200', 'product found' do
-        let(:product) do
-          Product.create!(
-            name: 'Laptop',
-            price: 999.99,
-            stock: 10,
-            creator: admin,
-            categories: [ category ]
-          )
-        end
-        let(:id) { product.id }
+        expect(response).to have_http_status(:ok)
+        data = JSON.parse(response.body)
+        expect(data.length).to eq(1)
+        expect(data.first['name']).to match(/Producto \d+/)
+        expect(data.first['categories']).not_to be_empty
+      end
+    end
+  end
 
-        run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data['name']).to eq('Laptop')
-          expect(data['categories']).to include(hash_including('id' => category.id))
-        end
+  describe "GET /api/v1/products/:id" do
+    context "como administrador" do
+      it "obtiene un producto" do
+        product = create(:product, :with_categories, creator: admin)
+
+        get "/api/v1/products/#{product.id}", headers: { 'Authorization' => "Bearer #{token_for(admin)}" }
+
+        expect(response).to have_http_status(:ok)
+        data = JSON.parse(response.body)
+        expect(data['name']).to eq(product.name)
+        expect(data['categories']).not_to be_empty
       end
 
-      response '404', 'product not found' do
-        let(:id) { 'invalid' }
-        run_test!
+      it "devuelve un error si el producto no existe" do
+        get "/api/v1/products/invalid", headers: { 'Authorization' => "Bearer #{token_for(admin)}" }
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
+
+  describe "PATCH /api/v1/products/:id" do
+    context "como administrador" do
+      it "actualiza un producto" do
+        product = create(:product, :with_categories, creator: admin)
+
+        patch "/api/v1/products/#{product.id}",
+              params: {
+                product: {
+                  name: 'Updated Laptop',
+                  price: 1099.99,
+                  stock: 15,
+                  category_ids: [ category.id ],
+                  attachments_attributes: [ { image: test_image } ]
+                }
+              },
+              headers: { 'Authorization' => "Bearer #{token_for(admin)}" }
+
+        expect(response).to have_http_status(:ok)
+        data = JSON.parse(response.body)
+        expect(data['name']).to eq('Updated Laptop')
+        expect(data['price'].to_f).to eq(1099.99)
+        expect(data['stock']).to eq(15)
+        expect(data['categories']).to include(hash_including('id' => category.id))
+        expect(data['attachments'].length).to eq(1)
+        product = Product.find(data['id'])
+        expect(product.attachments.count).to eq(1)
+      end
+
+      it "puede eliminar imágenes" do
+        product = create(:product, :with_categories, creator: admin)
+        attachment = product.attachments.create!
+        attachment.image.attach(test_image)
+
+        expect(product.reload.attachments.count).to eq(1)
+
+        patch "/api/v1/products/#{product.id}",
+              params: {
+                product: {
+                  attachments_attributes: [ { id: attachment.id, _destroy: true } ]
+                }
+              },
+              headers: { 'Authorization' => "Bearer #{token_for(admin)}" }
+
+        expect(response).to have_http_status(:ok)
+        product = Product.find(product.id)
+        expect(product.attachments).to be_empty
+      end
+
+      it "devuelve un error si el producto no existe" do
+        patch "/api/v1/products/invalid",
+              params: {
+                product: {
+                  name: 'Updated Laptop',
+                  price: 1099.99,
+                  stock: 15,
+                  category_ids: [ category.id ],
+                  attachments_attributes: [ { image: test_image } ]
+                }
+              },
+              headers: { 'Authorization' => "Bearer #{token_for(admin)}" }
+
+        expect(response).to have_http_status(:not_found)
       end
     end
 
-    patch 'Updates a product' do
-      tags 'Products'
-      consumes 'multipart/form-data'
-      produces 'application/json'
-      security [ bearer_auth: [] ]
+    context "como cliente" do
+      it "devuelve un error de autorización" do
+        product = create(:product, :with_categories, creator: admin)
 
-      parameter name: :product, in: :formData, schema: {
-        type: :object,
-        properties: {
-          'product[name]': { type: :string },
-          'product[price]': { type: :number },
-          'product[stock]': { type: :integer },
-          'product[category_ids][]': { type: :array, items: { type: :integer } },
-          'product[attachments_attributes][][image]': {
-            type: :array,
-            items: { type: :string, format: :binary },
-            description: 'Array of image files to add'
-          },
-          'product[attachments_attributes][][id]': { type: :integer },
-          'product[attachments_attributes][][_destroy]': { type: :boolean }
-        }
-      }
+        patch "/api/v1/products/#{product.id}",
+              params: {
+                product: {
+                  name: 'Updated Laptop',
+                  price: 1099.99,
+                  stock: 15,
+                  category_ids: [ category.id ],
+                  attachments_attributes: [ { image: test_image } ]
+                }
+              },
+              headers: { 'Authorization' => "Bearer #{token_for(client)}" }
 
-      response '200', 'product updated' do
-        let(:existing_product) do
-          Product.create!(
-            name: 'Old Laptop',
-            price: 899.99,
-            stock: 5,
-            creator: admin,
-            categories: [ category ]
-          )
-        end
-        let(:id) { existing_product.id }
-        let(:Authorization) { "Bearer #{token_for(admin)}" }
-        let(:product) do
-          {
-            'product[name]': 'Updated Laptop',
-            'product[price]': 1099.99,
-            'product[stock]': 15,
-            'product[category_ids][]': [ category.id ],
-            'product[attachments_attributes][]': {
-              image: test_image
-            }
-          }
-        end
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+  end
 
-        run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data['name']).to eq('Updated Laptop')
-          expect(data['price'].to_f).to eq(1099.99)
-          expect(data['stock']).to eq(15)
-          expect(data['categories']).to include(hash_including('id' => category.id))
-          expect(data['attachments'].length).to eq(1)
-          expect(data['attachments'].first['image_url']).to be_present
-        end
+  describe "DELETE /api/v1/products/:id" do
+    context "como administrador" do
+      it "elimina un producto" do
+        product = create(:product, :with_categories, creator: admin)
 
-        it 'can remove images' do
-          # Primero creamos un attachment
-          attachment = existing_product.attachments.create!
-          attachment.image.attach(test_image)
+        expect {
+          delete "/api/v1/products/#{product.id}", headers: { 'Authorization' => "Bearer #{token_for(admin)}" }
+        }.to change(Product, :count).by(-1)
 
-          # Luego intentamos eliminarlo
-          patch "/api/v1/products/#{id}", params: {
-            product: {
-              attachments_attributes: [
-                { id: attachment.id, _destroy: true }
-              ]
-            }
-          }, headers: { 'Authorization' => "Bearer #{token_for(admin)}" }
-
-          expect(response).to have_http_status(:success)
-          expect(existing_product.reload.attachments).to be_empty
-        end
+        expect(response).to have_http_status(:no_content)
+        expect(Product.exists?(product.id)).to be_falsey
       end
 
-      response '401', 'unauthorized' do
-        let(:existing_product) do
-          Product.create!(
-            name: 'Old Laptop',
-            price: 899.99,
-            stock: 5,
-            creator: admin
-          )
-        end
-        let(:id) { existing_product.id }
-        let(:Authorization) { "Bearer #{token_for(client)}" }
-        let(:product) do
-          {
-            'product[name]': 'Updated Laptop'
-          }
-        end
+      it "elimina los adjuntos asociados" do
+        product = create(:product, :with_categories, creator: admin)
+        attachment = product.attachments.create!
+        attachment.image.attach(test_image)
 
-        run_test!
+        expect(product.reload.attachments.count).to eq(1)
+
+        expect {
+          delete "/api/v1/products/#{product.id}", headers: { 'Authorization' => "Bearer #{token_for(admin)}" }
+        }.to change(Attachment, :count).by(-1)
+          .and change(ActiveStorage::Attachment, :count).by(-1)
+          .and change(ActiveStorage::Blob, :count).by(-1)
+
+        expect(response).to have_http_status(:no_content)
+        expect(Product.exists?(product.id)).to be_falsey
       end
 
-      response '404', 'product not found' do
-        let(:id) { 'invalid' }
-        let(:Authorization) { "Bearer #{token_for(admin)}" }
-        let(:product) do
-          {
-            'product[name]': 'Updated Laptop'
-          }
-        end
+      it "devuelve un error si el producto no existe" do
+        delete "/api/v1/products/invalid", headers: { 'Authorization' => "Bearer #{token_for(admin)}" }
 
-        run_test!
+        expect(response).to have_http_status(:not_found)
       end
     end
 
-    delete 'Deletes a product' do
-      tags 'Products'
-      security [ bearer_auth: [] ]
+    context "como cliente" do
+      it "devuelve un error de autorización" do
+        product = create(:product, :with_categories, creator: admin)
 
-      response '204', 'product deleted' do
-        let(:existing_product) do
-          Product.create!(
-            name: 'Old Laptop',
-            price: 899.99,
-            stock: 5,
-            creator: admin
-          )
-        end
-        let(:id) { existing_product.id }
-        let(:Authorization) { "Bearer #{token_for(admin)}" }
+        delete "/api/v1/products/#{product.id}", headers: { 'Authorization' => "Bearer #{token_for(client)}" }
 
-        run_test! do
-          expect(Product.exists?(id)).to be_falsey
-        end
-
-        it 'deletes associated attachments' do
-          # Crear un attachment
-          attachment = existing_product.attachments.create!
-          attachment.image.attach(test_image)
-
-          expect {
-            delete "/api/v1/products/#{id}", headers: { 'Authorization' => "Bearer #{token_for(admin)}" }
-          }.to change(Attachment, :count).by(-1)
-            .and change(ActiveStorage::Attachment, :count).by(-1)
-            .and change(ActiveStorage::Blob, :count).by(-1)
-        end
-      end
-
-      response '401', 'unauthorized' do
-        let(:existing_product) do
-          Product.create!(
-            name: 'Old Laptop',
-            price: 899.99,
-            stock: 5,
-            creator: admin
-          )
-        end
-        let(:id) { existing_product.id }
-        let(:Authorization) { "Bearer #{token_for(client)}" }
-
-        run_test!
-      end
-
-      response '404', 'product not found' do
-        let(:id) { 'invalid' }
-        let(:Authorization) { "Bearer #{token_for(admin)}" }
-
-        run_test!
+        expect(response).to have_http_status(:forbidden)
       end
     end
   end
