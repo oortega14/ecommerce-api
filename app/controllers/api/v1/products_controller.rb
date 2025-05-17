@@ -12,13 +12,11 @@ class Api::V1::ProductsController < ApplicationController
   end
 
   def create
-    # Uso de transacción para garantizar la integridad de los datos
     Product.transaction do
       product = Product.new(product_params)
       product.creator = current_user
 
       if product.save
-        # Si se enviaron categorías, las asociamos al producto
         if params[:product][:category_ids].present?
           product.category_ids = params[:product][:category_ids]
         end
@@ -33,7 +31,6 @@ class Api::V1::ProductsController < ApplicationController
   def update
     Product.transaction do
       if @product.update(product_params)
-        # Actualizamos las categorías si se enviaron
         if params[:product][:category_ids].present?
           @product.category_ids = params[:product][:category_ids]
         end

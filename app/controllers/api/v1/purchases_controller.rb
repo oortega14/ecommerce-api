@@ -3,7 +3,6 @@ class Api::V1::PurchasesController < ApplicationController
 
   # GET /api/v1/purchases
   def index
-    # Uso de includes para evitar el problema N+1
     @purchases = current_user.purchases.includes(:product).order(created_at: :desc)
     render json: @purchases
   end
@@ -16,13 +15,11 @@ class Api::V1::PurchasesController < ApplicationController
 
   # POST /api/v1/purchases
   def create
-    # Uso de transacción para garantizar la integridad de los datos
     Purchase.transaction do
       @purchase = current_user.purchases.new(purchase_params)
       @purchase.total_price = @purchase.quantity * @purchase.product.price
 
       if @purchase.save
-        # Delegamos el envío de email a un job para mejorar el rendimiento
         render json: @purchase, status: :created
       else
         render json: { errors: @purchase.errors.full_messages }, status: :unprocessable_entity
@@ -33,7 +30,6 @@ class Api::V1::PurchasesController < ApplicationController
   private
 
   def find_purchase
-    # Aseguramos que el usuario solo pueda ver sus propias compras
     current_user.purchases.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Purchase not found' }, status: :not_found
