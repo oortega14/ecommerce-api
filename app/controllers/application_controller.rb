@@ -1,6 +1,33 @@
 class ApplicationController < ActionController::API
-  # Before Actions
-  before_action :authorized
+  include JsonapiResponses::Respondable
+  # Rescue From
+  rescue_from ApiExceptions::BaseException, with: :render_error_response
+
+  def render_error_response(error)
+    error_response = {
+      error: {
+        code: error.code,
+        messages: error.messages
+      }
+    }
+
+    status_code = case error.error_type
+    when :UNAUTHORIZED
+      :unauthorized
+    when :RECORD_NOT_FOUND
+      :not_found
+    when :ADMIN_AUTHORIZATION
+      :forbidden
+    else
+      :unprocessable_entity
+    end
+
+    render json: error_response, status: status_code
+  end
+
+  def set_locale
+    I18n.locale = params[:locale] || 'es'
+  end
 
   def encode_token(payload)
     JWT.encode(payload, jwt_secret_key)
@@ -25,15 +52,15 @@ class ApplicationController < ActionController::API
     end
   end
 
-  def authorized
+  def authenticate_user
     unless !!current_user
-      render json: { message: 'Please log in' }, status: :unauthorized
+      render_error_response(ApiExceptions::BaseException.new(:UNAUTHORIZED, [], {}))
     end
   end
 
-  def admin_authorized
+  def authenticate_admin
     unless !!current_user && current_user.admin?
-      render json: { message: 'You are not authorized to perform this action' }, status: :forbidden
+      render_error_response(ApiExceptions::BaseException.new(:ADMIN_AUTHORIZATION, [], {}))
     end
   end
 
