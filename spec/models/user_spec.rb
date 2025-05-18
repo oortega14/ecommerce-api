@@ -16,23 +16,41 @@ RSpec.describe User, type: :model do
     it { should have_many(:created_categories).class_name('Category') }
   end
 
-  # Pruebas de validaciones
-  describe 'validations' do
-    subject { User.create!(valid_attributes) }
+  # Pruebas de validaciones personalizadas con excepciones
+  describe 'custom validations' do
+    context 'email validations' do
+      it 'raises EMAIL_REQUIRED exception when email is blank' do
+        user = User.new(password: 'password123', password_confirmation: 'password123')
+        expect {
+          user.save
+        }.to raise_error(ApiExceptions::BaseException) do |error|
+          expect(error.error_type).to eq(:EMAIL_REQUIRED)
+        end
+      end
 
-    it { should validate_presence_of(:email) }
-    it { should validate_uniqueness_of(:email).case_insensitive }
+      it 'raises EMAIL_NOT_UNIQUE exception when email is already taken' do
+        User.create!(valid_attributes)
+        duplicate_user = User.new(valid_attributes)
+        expect {
+          duplicate_user.save
+        }.to raise_error(ApiExceptions::BaseException) do |error|
+          expect(error.error_type).to eq(:EMAIL_NOT_UNIQUE)
+        end
+      end
+    end
 
     context 'password validations' do
-      let(:user) { User.new(email: 'test2@example.com') }
-
-      it 'requires minimum length of 6 characters' do
-        user.password = user.password_confirmation = '12345'
-        expect(user).not_to be_valid
-        expect(user.errors[:password]).to include('is too short (minimum is 6 characters)')
-
-        user.password = user.password_confirmation = '123456'
-        expect(user).to be_valid
+      it 'raises PASSWORD_TOO_SHORT exception when password is too short' do
+        user = User.new(
+          email: 'test2@example.com',
+          password: '12345',
+          password_confirmation: '12345'
+        )
+        expect {
+          user.save
+        }.to raise_error(ApiExceptions::BaseException) do |error|
+          expect(error.error_type).to eq(:PASSWORD_TOO_SHORT)
+        end
       end
     end
   end
@@ -72,7 +90,6 @@ RSpec.describe User, type: :model do
     context 'with valid attributes' do
       it 'creates a new user' do
         user = User.new(valid_attributes)
-        expect(user).to be_valid
         expect { user.save! }.not_to raise_error
       end
     end
@@ -81,7 +98,6 @@ RSpec.describe User, type: :model do
       it 'requires password confirmation to match' do
         user = User.new(valid_attributes.merge(password_confirmation: 'different'))
         expect(user).not_to be_valid
-        expect(user.errors[:password_confirmation]).to include("doesn't match Password")
       end
     end
   end

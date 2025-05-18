@@ -1,5 +1,5 @@
 class Api::V1::SessionsController < ApplicationController
-  skip_before_action :authorized, only: [ :create ]
+  before_action :authenticate_user, only: [ :destroy ]
 
   # POST: '/api/v1/sessions'
   def create

@@ -1,0 +1,11 @@
+en:
+  base_exceptions:
+    standard_error: "Error estandar"
+    record_not_found: "Registro no encontrado"
+    record_not_unique: "Registro no unico"
+    unauthorized_user: "Usuario no autorizado"
+    admin_authorization: "No tienes autorizacion para realizar esta accion"
+    email_required: "El email es requerido"
+    email_not_unique: "Este email ya esta registrado"
+    password_too_short: "La contraseña es demasiado corta"
+    

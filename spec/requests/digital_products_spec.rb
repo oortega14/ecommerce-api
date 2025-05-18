@@ -2,12 +2,10 @@ require 'rails_helper'
 require 'swagger_helper'
 
 RSpec.describe "Api::V1::DigitalProducts", type: :request do
-  # Crear datos de prueba
   let(:admin) { create(:user, :admin) }
   let(:client) { create(:user) }
   let(:category) { create(:category, creator: admin) }
 
-  # Atributos vu00e1lidos para un producto digital
   let(:valid_attributes) do
     {
       name: "Curso de Rails",
@@ -20,7 +18,6 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
     }
   end
 
-  # Atributos invu00e1lidos para un producto digital
   let(:invalid_attributes) do
     {
       name: "",
@@ -32,11 +29,11 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
   end
 
   path '/api/v1/digital_products' do
-    get 'Lista todos los productos digitales' do
-      tags 'Productos Digitales'
+    get 'List all digital products' do
+      tags 'Digital Products'
       produces 'application/json'
 
-      response '200', 'lista de productos digitales' do
+      response '200', 'list of digital products' do
         schema type: :array,
                items: {
                  type: :object,
@@ -89,8 +86,8 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
       end
     end
 
-    post 'Crea un nuevo producto digital' do
-      tags 'Productos Digitales'
+    post 'Create a new digital product' do
+      tags 'Digital Products'
       consumes 'application/json'
       produces 'application/json'
       security [ bearer_auth: [] ]
@@ -116,7 +113,7 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
         }
       }
 
-      response '201', 'producto digital creado' do
+      response '201', 'digital product created' do
         let(:Authorization) { "Bearer #{token_for(admin)}" }
         let(:digital_product) { { digital_product: valid_attributes } }
 

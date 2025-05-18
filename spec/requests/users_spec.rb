@@ -6,8 +6,9 @@ RSpec.describe 'Users API', type: :request do
       tags 'Users'
       produces 'application/json'
       security [ bearer_auth: [] ]
+      parameter name: :view, in: :query, type: :string, required: false, description: 'View type (summary para vista resumida)', enum: [ 'summary' ]
 
-      response '200', 'users found' do
+      response '200', 'users found (full view by default)' do
         let!(:admin_user) { User.create!(email: 'admin@example.com', password: 'password123', password_confirmation: 'password123', role: 'admin') }
         let!(:client_user) { User.create!(email: 'client@example.com', password: 'password123', password_confirmation: 'password123', role: 'client') }
         let(:Authorization) { "Bearer #{token_for(admin_user)}" }
@@ -71,8 +72,9 @@ RSpec.describe 'Users API', type: :request do
       tags 'Users'
       produces 'application/json'
       security [ bearer_auth: [] ]
+      parameter name: :view, in: :query, type: :string, required: false, description: 'View type (summary para vista resumida)', enum: [ 'summary' ]
 
-      response '200', 'user found' do
+      response '200', 'user found (full view by default)' do
         let!(:existing_user) { User.create!(email: 'test@example.com', password: 'password123', password_confirmation: 'password123') }
         let(:id) { existing_user.id }
         let(:Authorization) { "Bearer #{token_for(existing_user)}" }
@@ -83,6 +85,12 @@ RSpec.describe 'Users API', type: :request do
         let!(:existing_user) { User.create!(email: 'test@example.com', password: 'password123', password_confirmation: 'password123') }
         let(:id) { 'non_existent_id' }
         let(:Authorization) { "Bearer #{token_for(existing_user)}" }
+        run_test!
+      end
+
+      response '401', 'unauthorized' do
+        let!(:client_user) { User.create!(email: 'client@example.com', password: 'password123', password_confirmation: 'password123', role: 'client') }
+        let(:Authorization) { "Bearer #{token_for(client_user)}" }
         run_test!
       end
     end
@@ -99,7 +107,7 @@ RSpec.describe 'Users API', type: :request do
           user: {
             type: :object,
             properties: {
-              email: { type: :string }
+              name: { type: :string, example: 'Nuevo Nombre' }
             }
           }
         }
@@ -110,7 +118,7 @@ RSpec.describe 'Users API', type: :request do
         let!(:client_user) { User.create!(email: 'client@example.com', password: 'password123', password_confirmation: 'password123', role: 'client') }
         let(:id) { client_user.id }
         let(:Authorization) { "Bearer #{token_for(admin_user)}" }
-        let(:user) { { user: { email: 'new@example.com' } } }
+        let(:user) { { user: { name: 'Nuevo Nombre' } } }
         run_test!
       end
 
@@ -118,7 +126,7 @@ RSpec.describe 'Users API', type: :request do
         let!(:client_user) { User.create!(email: 'client@example.com', password: 'password123', password_confirmation: 'password123', role: 'client') }
         let(:id) { client_user.id }
         let(:Authorization) { "Bearer #{token_for(client_user)}" }
-        let(:user) { { user: { email: 'new@example.com' } } }
+        let(:user) { { user: { name: 'Nuevo Nombre' } } }
         run_test!
       end
 
@@ -126,7 +134,7 @@ RSpec.describe 'Users API', type: :request do
         let!(:admin_user) { User.create!(email: 'admin@example.com', password: 'password123', password_confirmation: 'password123', role: 'admin') }
         let(:id) { 'non_existent_id' }
         let(:Authorization) { "Bearer #{token_for(admin_user)}" }
-        let(:user) { { user: { email: 'new@example.com' } } }
+        let(:user) { { user: { name: 'Nuevo Nombre' } } }
         run_test!
       end
     end

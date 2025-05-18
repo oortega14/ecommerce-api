@@ -18,9 +18,20 @@ paths:
       - Categories
       security:
       - bearer_auth: []
+      parameters:
+      - name: view
+        in: query
+        required: false
+        description: "View type (summary para vista resumida):\n * `summary` \n *
+          `minimal` \n "
+        enum:
+        - summary
+        - minimal
+        schema:
+          type: string
       responses:
         '200':
-          description: categories found
+          description: categories found (full view by default)
     post:
       summary: Creates a category
       tags:
@@ -68,7 +79,7 @@ paths:
       - bearer_auth: []
       responses:
         '200':
-          description: category found
+          description: category found (full view by default)
         '404':
           description: category not found
     patch:
@@ -122,12 +133,12 @@ paths:
           description: category not found
   "/api/v1/digital_products":
     get:
-      summary: Lista todos los productos digitales
+      summary: List all digital products
       tags:
-      - Productos Digitales
+      - Digital Products
       responses:
         '200':
-          description: lista de productos digitales
+          description: list of digital products
           content:
             application/json:
               schema:
@@ -180,15 +191,15 @@ paths:
                           url:
                             type: string
     post:
-      summary: Crea un nuevo producto digital
+      summary: Create a new digital product
       tags:
-      - Productos Digitales
+      - Digital Products
       security:
       - bearer_auth: []
       parameters: []
       responses:
         '201':
-          description: producto digital creado
+          description: digital product created
         '422':
           description: datos invu00e1lidos
         '403':
@@ -654,6 +665,12 @@ paths:
       summary: Authenticates user
       tags:
       - Sessions
+      description: |-
+        Autentica a un usuario y devuelve un token JWT.
+
+        Ejemplos que puede utilizar:
+        - **Admin login**: { "user": { "email": "admin@example.com", "password": "password" } }
+        - **Client login**: { "user": { "email": "cliente1@example.com", "password": "password" } }
       parameters: []
       responses:
         '200':
@@ -671,8 +688,10 @@ paths:
                   properties:
                     email:
                       type: string
+                      example: admin@example.com
                     password:
                       type: string
+                      example: password
                   required:
                   - email
                   - password
@@ -862,9 +881,18 @@ paths:
       - Users
       security:
       - bearer_auth: []
+      parameters:
+      - name: view
+        in: query
+        required: false
+        description: "View type (summary para vista resumida):\n * `summary` \n "
+        enum:
+        - summary
+        schema:
+          type: string
       responses:
         '200':
-          description: users found
+          description: users found (full view by default)
         '403':
           description: forbidden for non-admin users
     post:
@@ -913,11 +941,22 @@ paths:
       - Users
       security:
       - bearer_auth: []
+      parameters:
+      - name: view
+        in: query
+        required: false
+        description: "View type (summary para vista resumida):\n * `summary` \n "
+        enum:
+        - summary
+        schema:
+          type: string
       responses:
         '200':
-          description: user found
+          description: user found (full view by default)
         '404':
           description: user not found
+        '401':
+          description: unauthorized
     patch:
       summary: Updates a user
       tags:
@@ -941,8 +980,9 @@ paths:
                 user:
                   type: object
                   properties:
-                    email:
+                    name:
                       type: string
+                      example: Nuevo Nombre
     delete:
       summary: Deletes a user
       tags:

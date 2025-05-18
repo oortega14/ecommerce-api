@@ -6,6 +6,10 @@ RSpec.describe 'Sessions API', type: :request do
       tags 'Sessions'
       consumes 'application/json'
       produces 'application/json'
+      description "Autentica a un usuario y devuelve un token JWT.\n\n"\
+                 "Ejemplos que puede utilizar:\n"\
+                 "- **Admin login**: { \"user\": { \"email\": \"admin@example.com\", \"password\": \"password\" } }\n"\
+                 "- **Client login**: { \"user\": { \"email\": \"cliente1@example.com\", \"password\": \"password\" } }"
 
       parameter name: :credentials, in: :body, schema: {
         type: :object,
@@ -13,8 +17,14 @@ RSpec.describe 'Sessions API', type: :request do
           user: {
             type: :object,
             properties: {
-              email: { type: :string },
-              password: { type: :string }
+              email: {
+                type: :string,
+                example: 'admin@example.com'
+              },
+              password: {
+                type: :string,
+                example: 'password'
+              }
             },
             required: [ 'email', 'password' ]
           }

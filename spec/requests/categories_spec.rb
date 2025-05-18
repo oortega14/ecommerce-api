@@ -6,8 +6,9 @@ RSpec.describe 'Categories API', type: :request do
       tags 'Categories'
       produces 'application/json'
       security [ bearer_auth: [] ]
+      parameter name: :view, in: :query, type: :string, required: false, description: 'View type (summary para vista resumida)', enum: [ 'summary', 'minimal' ]
 
-      response '200', 'categories found' do
+      response '200', 'categories found (full view by default)' do
         let!(:user) { User.create!(email: 'test@example.com', password: 'password123', password_confirmation: 'password123') }
         let!(:category) { Category.create!(name: 'Electronics', description: 'Electronic devices', creator: user) }
         let(:Authorization) { "Bearer #{token_for(user)}" }
@@ -76,7 +77,7 @@ RSpec.describe 'Categories API', type: :request do
       produces 'application/json'
       security [ bearer_auth: [] ]
 
-      response '200', 'category found' do
+      response '200', 'category found (full view by default)' do
         let!(:user) { User.create!(email: 'test@example.com', password: 'password123', password_confirmation: 'password123') }
         let!(:category) { Category.create!(name: 'Electronics', description: 'Electronic devices', creator: user) }
         let(:id) { category.id }

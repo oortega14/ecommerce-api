@@ -1,12 +1,12 @@
 class Api::V1::UsersController < ApplicationController
   before_action :set_user, only: %i[ show update destroy]
-  before_action :admin_authorized, only: %i[ index update destroy]
-  skip_before_action :authorized, only: [ :create ]
+  before_action :authenticate_admin, only: %i[ index update destroy]
+  before_action :authenticate_user, only: [ :show ]
 
   # GET: '/api/v1/users'
   def index
     users = User.where(role: 'client')
-    render json: users
+    render_with(users, context: { view: view_param })
   end
 
   # POST: '/api/v1/users'
@@ -22,37 +22,33 @@ class Api::V1::UsersController < ApplicationController
 
   # GET: '/api/v1/users/:id'
   def show
-    render json: @user
+    render_with(@user, context: { view: view_param })
   end
 
   # PATCH: '/api/v1/users/:id'
   def update
-    if @user.update(user_params)
-      render json: @user
-    else
-      render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
-    end
+    @user.update(user_params)
+    render_with(@user)
   end
 
   # DELETE: '/api/v1/users/:id'
   def destroy
-    if @user.destroy
-      render json: { message: 'User deleted' }, status: :ok
-    else
-      render json: { errors: @user.errors.full_messages }, status: :unprocessable_entity
-    end
+    render_with(@user)
   end
 
   private
 
   def set_user
-    @user = User.find_by(id: params[:id])
-    if @user.nil?
-      render json: { message: 'User not found' }, status: :not_found
-    end
+    @user = User.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    raise ApiExceptions::BaseException.new(:RECORD_NOT_FOUND, [], {})
   end
 
   def user_params
-    params.require(:user).permit(:email, :password, :name, :role)
+    params.require(:user).permit(:email, :password, :name)
+  end
+
+  def view_param
+    params[:view]&.to_sym
   end
 end

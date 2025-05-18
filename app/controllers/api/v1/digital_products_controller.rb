@@ -2,7 +2,6 @@ module Api
   module V1
     class DigitalProductsController < ApplicationController
       before_action :set_digital_product, only: [ :show, :update, :destroy, :purchase ]
-      skip_before_action :authorized, only: [ :index, :show ]
       before_action :admin_authorized, only: [ :create, :update, :destroy ]
 
       # GET /api/v1/digital_products
