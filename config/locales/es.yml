@@ -8,4 +8,5 @@ en:
     email_required: "El email es requerido"
     email_not_unique: "Este email ya esta registrado"
     password_too_short: "La contraseña es demasiado corta"
+    cannot_purchase: "No puedes comprar este producto digital"
     

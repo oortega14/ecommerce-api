@@ -14,7 +14,9 @@ module ApiExceptions
         # Validaciones de usuario
         EMAIL_REQUIRED: { code: 1005, message: I18n.t('base_exceptions.email_required') },
         EMAIL_NOT_UNIQUE: { code: 1006, message: I18n.t('base_exceptions.email_not_unique') },
-        PASSWORD_TOO_SHORT: { code: 1007, message: I18n.t('base_exceptions.password_too_short') }
+        PASSWORD_TOO_SHORT: { code: 1007, message: I18n.t('base_exceptions.password_too_short') },
+        # Validaciones de productos
+        CANNOT_PURCHASE: { code: 1008, message: I18n.t('base_exceptions.cannot_purchase') }
       }
     end
 

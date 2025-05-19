@@ -3,35 +3,41 @@ Rails.application.routes.draw do
   mount Rswag::Api::Engine => '/api-docs'
   namespace :api do
     namespace :v1 do
-      resources :products
+      # Autenticación
+      namespace :auth do
+        post 'sign_in', to: 'sessions#create'
+        delete 'logout', to: 'sessions#destroy'
+        post 'sign_up', to: 'registrations#create'
+      end
 
-      # Rutas para productos digitales
+      # Recursos principales
+      resources :products
       resources :digital_products do
         member do
-          post 'purchase' # POST /api/v1/digital_products/:id/purchase
+          post 'purchase'
         end
       end
 
-      # Rutas para productos físicos
       resources :physical_products do
         member do
-          post 'purchase' # POST /api/v1/physical_products/:id/purchase
-          get 'shipping_cost' # GET /api/v1/physical_products/:id/shipping_cost
+          post 'purchase'
+          get 'shipping_cost'
         end
       end
 
       resources :categories
-      resources :users
-      resources :sessions, only: [ :create ]
-      delete 'logout', to: 'sessions#destroy'
+      resources :users, except: [ :create ]
+      resources :sessions, only: []
       resources :purchases
       resources :attachments
 
-      # Specific Endpoints
-      get 'stats/top_products', to: 'stats#top_products'
-      get 'stats/most_purchased', to: 'stats#most_purchased'
-      get 'stats/purchases', to: 'stats#purchases'
-      get 'stats/purchase_counts', to: 'stats#purchase_counts'
+      # Estadísticas
+      namespace :stats do
+        get 'top_products'
+        get 'most_purchased'
+        get 'purchases'
+        get 'purchase_counts'
+      end
     end
   end
 end

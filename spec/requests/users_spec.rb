@@ -27,42 +27,6 @@ RSpec.describe 'Users API', type: :request do
         run_test!
       end
     end
-
-    post 'Creates a user' do
-      tags 'Users'
-      consumes 'application/json'
-      produces 'application/json'
-
-      parameter name: :user, in: :body, schema: {
-        type: :object,
-        properties: {
-          user: {
-            type: :object,
-            properties: {
-              email: { type: :string, example: 'user@example.com' },
-              password: { type: :string, example: 'password123' },
-              password_confirmation: { type: :string, example: 'password123' }
-            },
-            required: [ 'email', 'password', 'password_confirmation' ]
-          }
-        }
-      }
-
-      response '201', 'user created' do
-        let(:user) { { user: { email: 'new@example.com', password: 'password123', password_confirmation: 'password123' } } }
-
-        run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data).to have_key('token')
-          expect(data).to have_key('user')
-        end
-      end
-
-      response '422', 'invalid request' do
-        let(:user) { { user: { email: 'invalid_email' } } }
-        run_test!
-      end
-    end
   end
 
   path '/api/v1/users/{id}' do

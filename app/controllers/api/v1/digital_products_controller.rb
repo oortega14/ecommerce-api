@@ -2,57 +2,48 @@ module Api
   module V1
     class DigitalProductsController < ApplicationController
       before_action :set_digital_product, only: [ :show, :update, :destroy, :purchase ]
-      before_action :admin_authorized, only: [ :create, :update, :destroy ]
+      before_action :authenticate_admin, only: [ :create, :update, :destroy ]
 
       # GET /api/v1/digital_products
       def index
-        @digital_products = DigitalProduct.includes(:categories, :attachments)
-        render json: @digital_products, include: [ :categories, :attachments ]
+        digital_products = DigitalProduct.includes(:categories, :attachments)
+        render_with(digital_products, context: { view: view_param })
       end
 
       # GET /api/v1/digital_products/:id
       def show
-        render json: @digital_product, include: [ :categories, :attachments ]
+        render_with(@digital_product, context: { view: view_param })
       end
 
       # POST /api/v1/digital_products
       def create
-        @digital_product = DigitalProduct.new(digital_product_params)
-        @digital_product.creator = current_user
+        digital_product = DigitalProduct.new(digital_product_params)
+        digital_product.creator = current_user
 
-        if @digital_product.save
-          render json: @digital_product, status: :created, include: [ :categories, :attachments ]
-        else
-          render json: { errors: @digital_product.errors.full_messages }, status: :unprocessable_entity
-        end
+        render_with(digital_product)
       end
 
       # PUT /api/v1/digital_products/:id
       def update
-        if @digital_product.update(digital_product_params)
-          render json: @digital_product, include: [ :categories, :attachments ]
-        else
-          render json: { errors: @digital_product.errors.full_messages }, status: :unprocessable_entity
-        end
+        @digital_product.update(digital_product_params)
+        render_with(@digital_product)
       end
 
       # DELETE /api/v1/digital_products/:id
       def destroy
-        @digital_product.destroy
-        head :no_content
+        render_with(@digital_product)
       end
 
       # POST /api/v1/digital_products/:id/purchase
       def purchase
-        # Solo los usuarios autenticados pueden comprar
         begin
           purchase = @digital_product.purchase_by(current_user)
           render json: {
-            message: 'Producto digital comprado con u00e9xito',
+            message: 'Producto digital comprado con éxito',
             purchase: purchase
           }
         rescue StandardError => e
-          render json: { error: e.message }, status: :unprocessable_entity
+          raise ApiExceptions::BaseException.new(:CANNOT_PURCHASE, [], {})
         end
       end
 
@@ -61,7 +52,7 @@ module Api
       def set_digital_product
         @digital_product = DigitalProduct.find(params[:id])
       rescue ActiveRecord::RecordNotFound
-        render json: { error: 'Producto digital no encontrado' }, status: :not_found
+        raise ApiExceptions::BaseException.new(:RECORD_NOT_FOUND, [], {})
       end
 
       def digital_product_params
@@ -69,6 +60,10 @@ module Api
           :name, :description, :price, :download_url, :file_size, :file_format,
           category_ids: [], attachments_attributes: [ :id, :file, :_destroy ]
         )
+      end
+
+      def view_param
+        params[:view]&.to_sym
       end
     end
   end

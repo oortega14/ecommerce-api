@@ -8,4 +8,4 @@ en:
     email_required: "Email Required"
     email_not_unique: "Email Not Unique"
     password_too_short: "Password Too Short"
-    
+    cannot_purchase: "Cannot purchase digital product"

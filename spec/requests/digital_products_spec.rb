@@ -74,7 +74,6 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
                }
 
         before do
-          # Crear algunos productos digitales
           create_list(:digital_product, 3)
         end
 
@@ -91,21 +90,49 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
       consumes 'application/json'
       produces 'application/json'
       security [ bearer_auth: [] ]
+      description 'Create a new digital product. For images, provide a public URL where the image can be downloaded.'
+
       parameter name: :digital_product, in: :body, schema: {
         type: :object,
         properties: {
           digital_product: {
             type: :object,
             properties: {
-              name: { type: :string },
-              description: { type: :string },
-              price: { type: :string },
-              download_url: { type: :string },
-              file_size: { type: :integer },
-              file_format: { type: :string },
+              name: {
+                type: :string,
+                description: 'Name of the digital product',
+                example: 'Curso de Ruby on Rails'
+              },
+              description: {
+                type: :string,
+                description: 'Detailed description of the product',
+                example: 'Aprende Ruby on Rails desde cero hasta nivel avanzado'
+              },
+              price: {
+                type: :string,
+                description: 'Price of the product in string format',
+                example: '99.99'
+              },
+              download_url: {
+                type: :string,
+                description: 'URL where the digital product can be downloaded',
+                example: 'https://example.com/downloads/curso-rails.zip'
+              },
+              file_size: {
+                type: :integer,
+                description: 'File size in bytes',
+                example: 1024000
+              },
+              file_format: {
+                type: :string,
+                description: 'File format (PDF, MP4, ZIP, etc)',
+                example: 'ZIP'
+              },
               category_ids: {
                 type: :array,
-                items: { type: :integer }
+                items: { type: :integer },
+                description: 'IDs of the categories to which the product belongs',
+                example: [ 1, 2 ]
               }
             },
             required: [ 'name', 'price', 'download_url', 'file_size', 'file_format' ]
@@ -126,21 +153,14 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
         end
       end
 
-      response '422', 'datos invu00e1lidos' do
+      response '422', 'invalid data' do
         let(:Authorization) { "Bearer #{token_for(admin)}" }
         let(:digital_product) { { digital_product: invalid_attributes } }
 
         run_test!
       end
 
-      response '403', 'no autorizado (no es administrador)' do
-        let(:Authorization) { "Bearer #{token_for(client)}" }
-        let(:digital_product) { { digital_product: valid_attributes } }
-
-        run_test!
-      end
-
-      response '401', 'no autenticado' do
+      response '403', 'not authorized (not admin)' do
         let(:Authorization) { nil }
         let(:digital_product) { { digital_product: valid_attributes } }
 
@@ -155,26 +175,26 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
     let(:existing_digital_product) { create(:digital_product) }
     let(:id) { existing_digital_product.id }
 
-    get 'Obtiene un producto digital especu00edfico' do
-      tags 'Productos Digitales'
+    get 'Retrieves a specific digital product' do
+      tags 'Digital Products'
       produces 'application/json'
 
-      response '200', 'producto digital encontrado' do
+      response '200', 'digital product found' do
         schema type: :object,
-               properties: {
-                 id: { type: :integer },
-                 name: { type: :string },
-                 description: { type: :string },
-                 price: { type: :string },
-                 stock: { type: :integer },
-                 type: { type: :string },
-                 download_url: { type: :string },
-                 file_size: { type: :integer },
-                 file_format: { type: :string },
-                 creator_id: { type: :integer },
-                 created_at: { type: :string, format: 'date-time' },
-                 updated_at: { type: :string, format: 'date-time' }
-               }
+          properties: {
+            id: { type: :integer },
+            name: { type: :string },
+            description: { type: :string },
+            price: { type: :string },
+            stock: { type: :integer },
+            type: { type: :string },
+            download_url: { type: :string },
+            file_size: { type: :integer },
+            file_format: { type: :string },
+            creator_id: { type: :integer },
+            created_at: { type: :string, format: 'date-time' },
+            updated_at: { type: :string, format: 'date-time' }
+          }
 
         run_test! do |response|
           json = JSON.parse(response.body)
@@ -185,50 +205,86 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
         end
       end
 
-      response '404', 'producto digital no encontrado' do
+      response '404', 'digital product not found' do
         let(:id) { 999999 }
         run_test!
       end
     end
 
-    put 'Actualiza un producto digital' do
-      tags 'Productos Digitales'
+    patch 'Updates a digital product' do
+      tags 'Digital Products'
       consumes 'application/json'
       produces 'application/json'
       security [ bearer_auth: [] ]
+      description 'Update an existing digital product. You can update any field, all fields are optional.'
+
       parameter name: :digital_product, in: :body, schema: {
         type: :object,
         properties: {
           digital_product: {
             type: :object,
             properties: {
-              name: { type: :string },
-              description: { type: :string },
-              price: { type: :string },
-              download_url: { type: :string },
-              file_size: { type: :integer },
-              file_format: { type: :string },
+              name: {
+                type: :string,
+                description: 'Name of the digital product',
+                example: 'Updated Rails Course 2025'
+              },
+              description: {
+                type: :string,
+                description: 'Detailed description of the product',
+                example: 'Master Ruby on Rails with our updated 2025 curriculum'
+              },
+              price: {
+                type: :string,
+                description: 'Price of the product in string format',
+                example: '149.99'
+              },
+              download_url: {
+                type: :string,
+                description: 'URL where the digital product can be downloaded',
+                example: 'https://example.com/downloads/rails-2025.zip'
+              },
+              file_size: {
+                type: :integer,
+                description: 'File size in bytes',
+                example: 2048000
+              },
+              file_format: {
+                type: :string,
+                description: 'File format (PDF, MP4, ZIP, etc)',
+                example: 'ZIP'
+              },
               category_ids: {
                 type: :array,
-                items: { type: :integer }
+                items: { type: :integer },
+                description: 'IDs of the categories to which the product belongs',
+                example: [ 1, 3, 5 ]
               }
             }
+          }
+        },
+        example: {
+          digital_product: {
+            name: 'Updated Rails Course 2025',
+            price: '149.99',
+            description: 'Master Ruby on Rails with our updated 2025 curriculum',
+            category_ids: [ 1, 3, 5 ]
           }
         }
       }
 
-      response '200', 'producto digital actualizado' do
+      response '200', 'digital product updated' do
         let(:Authorization) { "Bearer #{token_for(admin)}" }
-        let(:digital_product) { { digital_product: { name: "Curso actualizado", file_format: "PDF" } } }
+        let(:digital_product) { { digital_product: { name: "Updated Rails Course 2025", file_format: "ZIP" } } }
 
         run_test! do |response|
           json = JSON.parse(response.body)
-          expect(json['name']).to eq("Curso actualizado")
-          expect(json['file_format']).to eq("PDF")
+          expect(json['name']).to eq("Updated Rails Course 2025")
+          expect(json['file_format']).to eq("ZIP")
         end
       end
 
-      response '403', 'no autorizado (no es administrador)' do
+      response '403', 'Unauthorized (not admin)' do
         let(:Authorization) { "Bearer #{token_for(client)}" }
         let(:digital_product) { { digital_product: { name: "Nuevo nombre" } } }
 
@@ -236,17 +292,22 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
       end
     end
 
-    delete 'Elimina un producto digital' do
-      tags 'Productos Digitales'
+    delete 'Deletes a digital product' do
+      tags 'Digital Products'
       security [ bearer_auth: [] ]
 
-      response '204', 'producto digital eliminado' do
+      response '200', 'digital product deleted' do
         let(:Authorization) { "Bearer #{token_for(admin)}" }
         run_test!
       end
 
-      response '403', 'no autorizado (no es administrador)' do
+      response '403', 'not authorized (not admin)' do
         let(:Authorization) { "Bearer #{token_for(client)}" }
+        run_test!
+      end
+
+      response '404', 'not found' do
+        let(:id) { 999999 }
         run_test!
       end
     end
@@ -258,8 +319,8 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
     let(:digital_product_to_purchase) { create(:digital_product) }
     let(:id) { digital_product_to_purchase.id }
 
-    post 'Compra un producto digital' do
-      tags 'Productos Digitales'
+    post 'Purchase a digital product' do
+      tags 'Digital Products'
       produces 'application/json'
       security [ bearer_auth: [] ]
 

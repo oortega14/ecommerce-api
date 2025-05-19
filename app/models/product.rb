@@ -4,7 +4,7 @@ class Product < ApplicationRecord
 
   has_many :categories_products, dependent: :destroy
   has_many :categories, through: :categories_products
-  has_many :purchases
+  has_many :purchases, dependent: :destroy
 
   has_many :attachments, as: :record, dependent: :destroy
 

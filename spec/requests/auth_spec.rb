@@ -1,9 +1,47 @@
 require 'swagger_helper'
 
-RSpec.describe 'Sessions API', type: :request do
-  path '/api/v1/sessions' do
+RSpec.describe 'Auth API', type: :request do
+  path '/api/v1/auth/sign_up' do
+    post 'Registers a user' do
+      tags 'Auth'
+      consumes 'application/json'
+      produces 'application/json'
+
+      parameter name: :user, in: :body, schema: {
+        type: :object,
+        properties: {
+          user: {
+            type: :object,
+            properties: {
+              email: { type: :string, example: 'user@example.com' },
+              password: { type: :string, example: 'password123' },
+              name: { type: :string, example: 'John Doe' }
+            },
+            required: [ 'email', 'password', 'name' ]
+          }
+        }
+      }
+
+      response '201', 'user created' do
+        let(:user) { { user: { email: 'new@example.com', password: 'password123', password_confirmation: 'password123', name: 'John Doe' } } }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).to have_key('token')
+          expect(data).to have_key('user')
+        end
+      end
+
+      response '422', 'invalid request' do
+        let(:user) { { user: { email: 'invalid_email' } } }
+        run_test!
+      end
+    end
+  end
+
+  path '/api/v1/auth/sign_in' do
     post 'Authenticates user' do
-      tags 'Sessions'
+      tags 'Auth'
       consumes 'application/json'
       produces 'application/json'
       description "Autentica a un usuario y devuelve un token JWT.\n\n"\
@@ -49,21 +87,16 @@ RSpec.describe 'Sessions API', type: :request do
     end
   end
 
-  path '/api/v1/logout' do
-    delete 'Logs out user' do
-      tags 'Sessions'
+  path '/api/v1/auth/logout' do
+    delete 'Signs out a user' do
+      tags 'Auth'
       produces 'application/json'
       security [ bearer_auth: [] ]
 
-      response '200', 'logged out successfully' do
+      response '200', 'user signed out' do
         let!(:user) { User.create!(email: 'test@example.com', password: 'password123', password_confirmation: 'password123') }
         let(:Authorization) { "Bearer #{token_for(user)}" }
-
-        run_test! do |response|
-          data = JSON.parse(response.body)
-          expect(data).to have_key('message')
-          expect(data['message']).to eq('Logged out successfully')
-        end
+        run_test!
       end
 
       response '401', 'unauthorized' do

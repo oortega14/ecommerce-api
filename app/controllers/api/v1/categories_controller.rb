@@ -15,45 +15,33 @@ class Api::V1::CategoriesController < ApplicationController
 
   # POST: '/api/v1/categories'
   def create
-    Category.transaction do
-      category = Category.new(category_params)
-      category.creator = current_user
+    category = Category.new(category_params)
+    category.creator = current_user
 
-      if category.save
-        render json: category, include: [ :products ], status: :created
-      else
-        render json: { errors: category.errors.full_messages }, status: :unprocessable_entity
-      end
-    end
+    render_with(category)
   end
 
   # PUT: '/api/v1/categories/:id'
   def update
-    Category.transaction do
-      if @category.update(category_params)
-        render json: @category, include: [ :products ]
-      else
-        render json: { errors: @category.errors.full_messages }, status: :unprocessable_entity
-      end
-    end
+    @category.update(category_params)
+    render_with(@category, context: { view: view_param })
   end
 
   # DELETE: '/api/v1/categories/:id'
   def destroy
-    @category.destroy
-    head :no_content
+    render_with(@category)
   end
 
   private
 
-  def view_param
-    params[:view]&.to_sym
-  end
-
   def set_category
     @category = Category.includes(:products).find(params[:id])
   rescue ActiveRecord::RecordNotFound
-    render json: { error: 'Category not found' }, status: :not_found
+    raise ApiExceptions::BaseException.new(:RECORD_NOT_FOUND, [], {})
+  end
+
+  def view_param
+    params[:view]&.to_sym
   end
 
   def category_params
