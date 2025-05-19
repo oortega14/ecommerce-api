@@ -108,6 +108,18 @@ Se utiliza la gema `jsonapi_responses` (desarrollada por el autor) para estandar
 
 La documentación completa de la API está disponible en `/api-docs` una vez que el servidor esté en ejecución.
 
+## Credenciales
+
+Para que la aplicación funcione correctamente, es necesario configurar las credenciales de Rails. La master key para este proyecto es:
+
+```
+10e71b04df1a108c4a1b2c0c037b69b8
+```
+
+Para configurar las credenciales, crea un archivo `config/master.key` con el contenido anterior o configura la variable de entorno `RAILS_MASTER_KEY` con ese valor.
+
+> **Nota**: En un entorno de producción real, nunca deberías compartir la master key en el README o en el código fuente. Esta excepción se hace únicamente porque es un proyecto de prueba técnica.
+
 ## Testing
 
 Todos los endpoints y modelos de la aplicación han sido testeados exhaustivamente utilizando RSpec:
