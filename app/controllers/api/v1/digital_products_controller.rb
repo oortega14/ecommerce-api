@@ -47,6 +47,19 @@ module Api
         end
       end
 
+      # GET /api/v1/digital_products/:id/audits
+      def audits
+        digital_product = DigitalProduct.includes(audits: :user).find(params[:id])
+        render json: digital_product.audits.map { |audit|
+          {
+            action: audit.action,
+            user: audit.user&.email,
+            changes: audit.audited_changes,
+            created_at: audit.created_at
+          }
+        }
+      end
+
       private
 
       def set_digital_product

@@ -552,6 +552,27 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "List Audits",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/categories/13/audits",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"categories",
+								"13",
+								"audits"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"description": "Endpoints para la gestión de categorías del sistema. Permite crear, listar, actualizar y eliminar categorías que agrupan productos digitales o físicos."
@@ -827,12 +848,33 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "List Audits",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/digital_products/10/audits",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"digital_products",
+								"10",
+								"audits"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"description": "Endpoints para administrar productos digitales, como ebooks, cursos, software o archivos descargables. Incluye creación, edición, listado y eliminación de estos productos."
 		},
 		{
-			"name": "Productos Fisicos",
+			"name": "Physical Products",
 			"item": [
 				{
 					"name": "List Physical Products",
@@ -1106,6 +1148,27 @@
 								"v1",
 								"physical_products",
 								"13"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Audits",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/physical_products/13/audits",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"physical_products",
+								"13",
+								"audits"
 							]
 						}
 					},

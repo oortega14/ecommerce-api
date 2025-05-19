@@ -201,10 +201,59 @@ paths:
       security:
       - bearer_auth: []
       responses:
-        '204':
+        '200':
           description: category deleted
         '403':
           description: forbidden for non-admin users
+        '404':
+          description: category not found
+  "/api/v1/categories/{id}/audits":
+    parameters:
+    - name: id
+      in: path
+      description: category id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: Retrieves audit history for a category
+      tags:
+      - Categories
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: audit history found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    action:
+                      type: string
+                      description: The type of action performed (create, update, destroy)
+                      example: update
+                    user:
+                      type:
+                      - string
+                      - 'null'
+                      description: Email of the user who performed the action
+                      example: admin@example.com
+                      nullable: true
+                    changes:
+                      type: object
+                      description: Changes made in this audit entry
+                      example:
+                        name:
+                        - Old Name
+                        - New Name
+                    created_at:
+                      type: string
+                      format: date-time
+                      description: When the action was performed
+                      example: '2025-05-19T12:00:00.000Z'
         '404':
           description: category not found
   "/api/v1/digital_products":
@@ -230,8 +279,6 @@ paths:
                       type: string
                     price:
                       type: string
-                    stock:
-                      type: integer
                     type:
                       type: string
                     download_url:
@@ -356,8 +403,6 @@ paths:
                     type: string
                   price:
                     type: string
-                  stock:
-                    type: integer
                   type:
                     type: string
                   download_url:
@@ -454,6 +499,55 @@ paths:
           description: not authorized (not admin)
         '404':
           description: not found
+  "/api/v1/digital_products/{id}/audits":
+    parameters:
+    - name: id
+      in: path
+      description: digital product id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: Retrieves audit history for a digital product
+      tags:
+      - Digital Products
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: audit history found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    action:
+                      type: string
+                      description: The type of action performed (create, update, destroy)
+                      example: update
+                    user:
+                      type:
+                      - string
+                      - 'null'
+                      description: Email of the user who performed the action
+                      example: admin@example.com
+                      nullable: true
+                    changes:
+                      type: object
+                      description: Changes made in this audit entry
+                      example:
+                        name:
+                        - Old Name
+                        - New Name
+                    created_at:
+                      type: string
+                      format: date-time
+                      description: When the action was performed
+                      example: '2025-05-19T12:00:00.000Z'
+        '404':
+          description: digital product not found
   "/api/v1/digital_products/{id}/purchase":
     parameters:
     - name: id
@@ -470,8 +564,8 @@ paths:
       responses:
         '200':
           description: digital product purchased successfully
-        '401':
-          description: not authenticated
+        '422':
+          description: unprocessable entity
   "/api/v1/physical_products":
     get:
       summary: List all physical products
@@ -738,8 +832,6 @@ paths:
         '200':
           description: physical product purchased successfully
         '422':
-          description: insufficient stock error
-        '401':
           description: not authenticated
   "/api/v1/physical_products/{id}/shipping_cost":
     parameters:
@@ -762,6 +854,55 @@ paths:
                 properties:
                   shipping_cost:
                     type: number
+        '404':
+          description: physical product not found
+  "/api/v1/physical_products/{id}/audits":
+    parameters:
+    - name: id
+      in: path
+      description: physical product id
+      required: true
+      schema:
+        type: string
+    get:
+      summary: Retrieves audit history for a physical product
+      tags:
+      - Physical Products
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: audit history found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    action:
+                      type: string
+                      description: The type of action performed (create, update, destroy)
+                      example: update
+                    user:
+                      type:
+                      - string
+                      - 'null'
+                      description: Email of the user who performed the action
+                      example: admin@example.com
+                      nullable: true
+                    changes:
+                      type: object
+                      description: Changes made in this audit entry
+                      example:
+                        name:
+                        - Old Name
+                        - New Name
+                    created_at:
+                      type: string
+                      format: date-time
+                      description: When the action was performed
+                      example: '2025-05-19T12:00:00.000Z'
         '404':
           description: physical product not found
   "/api/v1/purchases":
@@ -835,7 +976,7 @@ paths:
       - bearer_auth: []
       responses:
         '200':
-          description: lista de productos más vendidos por categoría
+          description: list of top products by quantity for each category
           content:
             application/json:
               schema:
@@ -856,8 +997,6 @@ paths:
                             type: string
                           quantity_sold:
                             type: integer
-        '401':
-          description: Not Authenticated
         '403':
           description: Unauthorized (not admin)
   "/api/v1/stats/most_purchased":
@@ -884,6 +1023,8 @@ paths:
                 items:
                   type: object
                   properties:
+                    category_id:
+                      type: integer
                     category_name:
                       type: string
                     top_products:
@@ -896,9 +1037,7 @@ paths:
                           name:
                             type: string
                           total_revenue:
-                            type: string
-        '401':
-          description: Not Authenticated
+                            type: number
         '403':
           description: Unauthorized (not admin)
   "/api/v1/stats/purchases":
@@ -960,7 +1099,7 @@ paths:
                       type: string
                     client_email:
                       type: string
-        '401':
+        '403':
           description: Not Authenticated
   "/api/v1/stats/purchase_counts":
     get:
@@ -991,7 +1130,7 @@ paths:
                 type: object
                 additionalProperties:
                   type: integer
-        '401':
+        '403':
           description: Not Authenticated
   "/api/v1/users":
     get:
@@ -1039,11 +1178,9 @@ paths:
           type: string
       responses:
         '200':
-          description: user found (full view by default)
+          description: other user details accessible
         '404':
           description: user not found
-        '401':
-          description: unauthorized
     patch:
       summary: Updates a user
       tags:

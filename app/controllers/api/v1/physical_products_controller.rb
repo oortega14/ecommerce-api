@@ -53,6 +53,19 @@ module Api
         render json: { shipping_cost: @physical_product.shipping_cost.to_f }
       end
 
+      # GET /api/v1/physical_products/:id/audits
+      def audits
+        physical_product = PhysicalProduct.includes(audits: :user).find(params[:id])
+        render json: physical_product.audits.map { |audit|
+          {
+            action: audit.action,
+            user: audit.user&.email,
+            changes: audit.audited_changes,
+            created_at: audit.created_at
+          }
+        }
+      end
+
       private
 
       def set_physical_product

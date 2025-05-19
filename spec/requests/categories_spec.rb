@@ -198,4 +198,67 @@ RSpec.describe 'Categories API', type: :request do
       end
     end
   end
+
+  path '/api/v1/categories/{id}/audits' do
+    parameter name: 'id', in: :path, type: :string, description: 'category id'
+
+    get 'Retrieves audit history for a category' do
+      tags 'Categories'
+      produces 'application/json'
+      security [ bearer_auth: [] ]
+
+      response '200', 'audit history found' do
+        let!(:admin_user) { User.create!(email: 'admin@example.com', password: 'password123', password_confirmation: 'password123', role: 'admin') }
+        let!(:category) { Category.create!(name: 'Electronics', description: 'Electronic devices', creator: admin_user) }
+        let(:id) { category.id }
+        let(:Authorization) { "Bearer #{token_for(admin_user)}" }
+
+        schema type: :array,
+               items: {
+                 type: :object,
+                 properties: {
+                   action: {
+                     type: :string,
+                     description: 'The type of action performed (create, update, destroy)',
+                     example: 'update'
+                   },
+                   user: {
+                     type: [ :string, :null ],
+                     description: 'Email of the user who performed the action',
+                     example: 'admin@example.com',
+                     nullable: true
+                   },
+                   changes: {
+                     type: :object,
+                     description: 'Changes made in this audit entry',
+                     example: { "name": [ "Old Name", "New Name" ] }
+                   },
+                   created_at: {
+                     type: :string,
+                     format: 'date-time',
+                     description: 'When the action was performed',
+                     example: "2025-05-19T12:00:00.000Z"
+                   }
+                 }
+               }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).to be_an(Array)
+
+          expect(data.length).to be >= 1
+          expect(data.first).to have_key('action')
+          expect(data.first).to have_key('changes')
+          expect(data.first).to have_key('created_at')
+        end
+      end
+
+      response '404', 'category not found' do
+        let!(:admin_user) { User.create!(email: 'admin@example.com', password: 'password123', password_confirmation: 'password123', role: 'admin') }
+        let(:id) { 'invalid' }
+        let(:Authorization) { "Bearer #{token_for(admin_user)}" }
+        run_test!
+      end
+    end
+  end
 end

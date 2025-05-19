@@ -15,6 +15,7 @@ Rails.application.routes.draw do
       resources :digital_products do
         member do
           post 'purchase'
+          get 'audits'
         end
       end
 
@@ -22,10 +23,15 @@ Rails.application.routes.draw do
         member do
           post 'purchase'
           get 'shipping_cost'
+          get 'audits'
         end
       end
 
-      resources :categories
+      resources :categories do
+        member do
+          get 'audits'
+        end
+      end
       resources :users, except: [ :create ]
       resources :sessions, only: []
       resources :purchases

@@ -402,4 +402,66 @@ RSpec.describe "Api::V1::PhysicalProducts", type: :request do
       end
     end
   end
+
+  path '/api/v1/physical_products/{id}/audits' do
+    parameter name: 'id', in: :path, type: :string, description: 'physical product id'
+
+    get 'Retrieves audit history for a physical product' do
+      tags 'Physical Products'
+      produces 'application/json'
+      security [ bearer_auth: [] ]
+
+      response '200', 'audit history found' do
+        let!(:admin_user) { User.create!(email: 'admin@example.com', password: 'password123', password_confirmation: 'password123', role: 'admin') }
+        let!(:physical_product) { PhysicalProduct.create!(name: 'Laptop', price: 999.99, weight: 2.5, dimensions: '35x25x2', stock: 10, creator: admin_user) }
+        let(:id) { physical_product.id }
+        let(:Authorization) { "Bearer #{token_for(admin_user)}" }
+
+        schema type: :array,
+               items: {
+                 type: :object,
+                 properties: {
+                   action: {
+                     type: :string,
+                     description: 'The type of action performed (create, update, destroy)',
+                     example: 'update'
+                   },
+                   user: {
+                     type: [ :string, :null ],
+                     description: 'Email of the user who performed the action',
+                     example: 'admin@example.com',
+                     nullable: true
+                   },
+                   changes: {
+                     type: :object,
+                     description: 'Changes made in this audit entry',
+                     example: { "name": [ "Old Name", "New Name" ] }
+                   },
+                   created_at: {
+                     type: :string,
+                     format: 'date-time',
+                     description: 'When the action was performed',
+                     example: "2025-05-19T12:00:00.000Z"
+                   }
+                 }
+               }
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data).to be_an(Array)
+          expect(data.length).to be >= 1
+          expect(data.first).to have_key('action')
+          expect(data.first).to have_key('changes')
+          expect(data.first).to have_key('created_at')
+        end
+      end
+
+      response '404', 'physical product not found' do
+        let!(:admin_user) { User.create!(email: 'admin@example.com', password: 'password123', password_confirmation: 'password123', role: 'admin') }
+        let(:id) { 'invalid' }
+        let(:Authorization) { "Bearer #{token_for(admin_user)}" }
+        run_test!
+      end
+    end
+  end
 end

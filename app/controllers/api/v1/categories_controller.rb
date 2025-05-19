@@ -32,6 +32,19 @@ class Api::V1::CategoriesController < ApplicationController
     render_with(@category)
   end
 
+  # GET: '/api/v1/categories/:id/audits'
+  def audits
+    category = Category.includes(audits: :user).find(params[:id])
+    render json: category.audits.map { |audit|
+      {
+        action: audit.action,
+        user: audit.user&.email,
+        changes: audit.audited_changes,
+        created_at: audit.created_at
+      }
+    }
+  end
+
   private
 
   def set_category
