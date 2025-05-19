@@ -6,12 +6,12 @@ class Api::V1::UsersController < ApplicationController
   # GET: '/api/v1/users'
   def index
     users = User.where(role: 'client')
-    render_with(users, context: { view: view_param })
+    render_with(users, context: { view: params[:view] })
   end
 
   # GET: '/api/v1/users/:id'
   def show
-    render_with(@user, context: { view: view_param })
+    render_with(@user, context: { view: params[:view] })
   end
 
   # PATCH: '/api/v1/users/:id'
@@ -35,9 +35,5 @@ class Api::V1::UsersController < ApplicationController
 
   def user_params
     params.require(:user).permit(:email, :password, :name)
-  end
-
-  def view_param
-    params[:view]&.to_sym
   end
 end

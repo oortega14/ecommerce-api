@@ -38,7 +38,7 @@ gem 'redis', '~> 5.4'
 gem 'rswag', '~> 2.16'
 
 # JsonApiResponses for formatting responses
-gem 'jsonapi_responses', '~> 0.1.2'
+gem 'jsonapi_responses', '~> 0.1.5'
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

@@ -7,12 +7,12 @@ module Api
       # GET /api/v1/physical_products
       def index
         physical_products = PhysicalProduct.includes(:categories, :attachments)
-        render_with(physical_products, context: { view: view_param })
+        render_with(physical_products, context: { view: params[:view] })
       end
 
       # GET /api/v1/physical_products/:id
       def show
-        render_with(@physical_product, context: { view: view_param })
+        render_with(@physical_product, context: { view: params[:view] })
       end
 
       # POST /api/v1/physical_products
@@ -79,10 +79,6 @@ module Api
           :name, :description, :price, :stock, :weight, :dimensions,
           category_ids: [], attachments_attributes: [ :id, :file, :_destroy ]
         )
-      end
-
-      def view_param
-        params[:view]&.to_sym
       end
     end
   end

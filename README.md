@@ -130,7 +130,13 @@ Todos los endpoints y modelos de la aplicación han sido testeados exhaustivamen
 
 La documentación de la API se genera automáticamente a partir de los tests utilizando Rswag, lo que garantiza que la documentación esté siempre actualizada y refleje con precisión el comportamiento real de la API.
 
-Para ejecutar los tests:
+antes de ejecutar los tests por favor levantar el servidor de redis
+
+```bash
+redis-server
+```
+
+y luego para ejecutar los tests:
 
 ```bash
 bundle exec rspec

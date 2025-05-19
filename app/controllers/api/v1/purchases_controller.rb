@@ -9,12 +9,12 @@ class Api::V1::PurchasesController < ApplicationController
     else
       current_user.purchases.order(created_at: :desc)
     end
-    render_with(purchases, context: { view: view_param })
+    render_with(purchases, context: { view: params[:view] })
   end
 
   # GET /api/v1/purchases/:id
   def show
-    render_with(@purchase, context: { view: view_param })
+    render_with(@purchase, context: { view: params[:view] })
   end
 
   # POST /api/v1/purchases
@@ -41,9 +41,5 @@ class Api::V1::PurchasesController < ApplicationController
 
   def purchase_params
     params.require(:purchase).permit(:product_id, :quantity)
-  end
-
-  def view_param
-    params[:view]&.to_sym
   end
 end

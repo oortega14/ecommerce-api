@@ -5,12 +5,12 @@ class Api::V1::CategoriesController < ApplicationController
   # GET: '/api/v1/categories'
   def index
     categories = Category.includes(products: { attachments: { image_attachment: :blob } }).all
-    render_with(categories, context: { view: view_param })
+    render_with(categories, context: { view: params[:view] })
   end
 
   # GET: '/api/v1/categories/:id'
   def show
-    render_with(@category, context: { view: view_param })
+    render_with(@category, context: { view: params[:view] })
   end
 
   # POST: '/api/v1/categories'
@@ -24,7 +24,7 @@ class Api::V1::CategoriesController < ApplicationController
   # PUT: '/api/v1/categories/:id'
   def update
     @category.update(category_params)
-    render_with(@category, context: { view: view_param })
+    render_with(@category, context: { view: params[:view] })
   end
 
   # DELETE: '/api/v1/categories/:id'
@@ -51,10 +51,6 @@ class Api::V1::CategoriesController < ApplicationController
     @category = Category.includes(:products).find(params[:id])
   rescue ActiveRecord::RecordNotFound
     raise ApiExceptions::BaseException.new(:RECORD_NOT_FOUND, [], {})
-  end
-
-  def view_param
-    params[:view]&.to_sym
   end
 
   def category_params
