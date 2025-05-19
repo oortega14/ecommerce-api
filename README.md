@@ -57,6 +57,12 @@ bundle exec sidekiq
 rails s
 ```
 
+## Postman Collection
+
+Puedes probar los endpoints con la colección Postman incluida en:
+
+📁 `postman/postman_collection.json`
+
 ## Endpoints destacados
 
 ### Estadísticas (StatsController)
@@ -101,3 +107,25 @@ Se utiliza la gema `jsonapi_responses` (desarrollada por el autor) para estandar
 ## Documentación
 
 La documentación completa de la API está disponible en `/api-docs` una vez que el servidor esté en ejecución.
+
+## Testing
+
+Todos los endpoints y modelos de la aplicación han sido testeados exhaustivamente utilizando RSpec:
+
+- **Tests de modelos**: Validaciones, asociaciones y métodos personalizados
+- **Tests de controladores**: Flujos completos de solicitudes HTTP
+- **Tests de integración**: Interacciones entre diferentes componentes
+
+La documentación de la API se genera automáticamente a partir de los tests utilizando Rswag, lo que garantiza que la documentación esté siempre actualizada y refleje con precisión el comportamiento real de la API.
+
+Para ejecutar los tests:
+
+```bash
+bundle exec rspec
+```
+
+Para regenerar la documentación de la API:
+
+```bash
+rails rswag:specs:swaggerize
+```

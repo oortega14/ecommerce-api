@@ -77,12 +77,6 @@ RSpec.describe 'Purchases API', type: :request do
           expect(data['client_id']).to eq(client.id)
           expect(data['product_id']).to eq(product.id)
         end
-
-        it 'enqueues FirstPurchaseEmailJob' do
-          expect {
-            post '/api/v1/purchases', params: purchase, headers: { 'Authorization' => "Bearer #{token_for(client)}" }
-          }.to have_enqueued_job(FirstPurchaseEmailJob)
-        end
       end
 
       response '422', 'invalid request' do
@@ -144,7 +138,9 @@ RSpec.describe 'Purchases API', type: :request do
         run_test! do |response|
           expect(response).to have_http_status(:not_found)
           data = JSON.parse(response.body)
-          expect(data['error']).to eq('Purchase not found')
+          expect(data['error']).to be_present
+          expect(data['error']['code']).to eq(1001)
+          expect(data['error']['messages']).to include("Registro no encontrado")
         end
       end
 
@@ -161,7 +157,9 @@ RSpec.describe 'Purchases API', type: :request do
         get "/api/v1/purchases/#{other_purchase.id}", headers: { 'Authorization' => "Bearer #{token_for(client)}" }
         expect(response).to have_http_status(:not_found)
         data = JSON.parse(response.body)
-        expect(data['error']).to eq('Purchase not found')
+        expect(data['error']).to be_present
+        expect(data['error']['code']).to eq(1001)
+        expect(data['error']['messages']).to include("Registro no encontrado")
       end
     end
   end

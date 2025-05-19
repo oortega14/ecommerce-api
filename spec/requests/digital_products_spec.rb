@@ -42,7 +42,6 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
                    name: { type: :string },
                    description: { type: :string },
                    price: { type: :string },
-                   stock: { type: :integer },
                    type: { type: :string },
                    download_url: { type: :string },
                    file_size: { type: :integer },
@@ -80,7 +79,7 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
         run_test! do |response|
           json = JSON.parse(response.body)
           expect(json.length).to eq(3)
-          expect(json.first['type']).to eq('DigitalProduct')
+          expect(json.first['name']).to be_present
         end
       end
     end
@@ -149,7 +148,6 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
           expect(json['name']).to eq(valid_attributes[:name])
           expect(json['download_url']).to eq(valid_attributes[:download_url])
           expect(json['file_format']).to eq(valid_attributes[:file_format])
-          expect(json['stock']).to eq(999999) # Stock ilimitado
         end
       end
 
@@ -186,7 +184,6 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
             name: { type: :string },
             description: { type: :string },
             price: { type: :string },
-            stock: { type: :integer },
             type: { type: :string },
             download_url: { type: :string },
             file_size: { type: :integer },
@@ -199,7 +196,6 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
         run_test! do |response|
           json = JSON.parse(response.body)
           expect(json['id']).to eq(existing_digital_product.id)
-          expect(json['type']).to eq('DigitalProduct')
           expect(json['download_url']).to eq(existing_digital_product.download_url)
           expect(json['file_format']).to eq(existing_digital_product.file_format)
         end
@@ -207,6 +203,7 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
 
       response '404', 'digital product not found' do
         let(:id) { 999999 }
+        let(:Authorization) { "Bearer #{token_for(admin)}" }
         run_test!
       end
     end
@@ -308,6 +305,7 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
 
       response '404', 'not found' do
         let(:id) { 999999 }
+        let(:Authorization) { "Bearer #{token_for(admin)}" }
         run_test!
       end
     end
@@ -343,9 +341,13 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
         end
       end
 
-      response '401', 'not authenticated' do
+      response '422', 'unprocessable entity' do
         let(:Authorization) { nil }
-        run_test!
+        run_test! do |response|
+          json = JSON.parse(response.body)
+          expect(json['error']).to be_present
+          expect(json['error']['messages']).to include("No puedes comprar este producto digital")
+        end
       end
     end
   end

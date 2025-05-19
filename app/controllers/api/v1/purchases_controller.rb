@@ -27,7 +27,6 @@ class Api::V1::PurchasesController < ApplicationController
 
     purchase.client = current_user
     purchase.total_price = purchase.quantity * purchase.product.price
-    debugger
 
     render_with(purchase)
   end

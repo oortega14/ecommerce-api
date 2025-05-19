@@ -57,7 +57,7 @@ module Api
 
       def digital_product_params
         params.require(:digital_product).permit(
-          :name, :description, :price, :download_url, :file_size, :file_format,
+          :name, :description, :price, :download_url, :file_size, :file_format, :stock, :creator_id,
           category_ids: [], attachments_attributes: [ :id, :file, :_destroy ]
         )
       end

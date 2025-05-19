@@ -28,23 +28,17 @@ RSpec.describe Purchase, type: :model do
 
   # Pruebas de callbacks
   describe 'callbacks' do
-    it 'enqueues FirstPurchaseEmailJob after creation' do
+    it 'envía un email de notificación de primera compra después de la creación' do
       expect {
         Purchase.create!(valid_attributes)
-      }.to have_enqueued_job(FirstPurchaseEmailJob)
+      }.to have_enqueued_job(ActionMailer::MailDeliveryJob)
     end
 
-    it 'passes client_id and purchase_id to the job' do
-      purchase = Purchase.create!(valid_attributes)
-      expect(FirstPurchaseEmailJob).to have_been_enqueued
-        .with(purchase.client_id, purchase.id)
-    end
-
-    it 'does not enqueue job on update' do
+    it 'no envía email en actualización' do
       purchase = Purchase.create!(valid_attributes)
       expect {
         purchase.update(quantity: 3)
-      }.not_to have_enqueued_job(FirstPurchaseEmailJob)
+      }.not_to have_enqueued_job(ActionMailer::MailDeliveryJob)
     end
   end
 

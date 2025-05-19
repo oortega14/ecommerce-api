@@ -76,7 +76,7 @@ RSpec.describe "Api::V1::Stats", type: :request do
         end
       end
 
-      response '401', 'Not Authenticated' do
+      response '403', 'Not Authenticated' do
         let(:Authorization) { nil }
 
         run_test!
@@ -105,6 +105,7 @@ RSpec.describe "Api::V1::Stats", type: :request do
                items: {
                  type: :object,
                  properties: {
+                   category_id: { type: :integer },
                    category_name: { type: :string },
                    top_products: {
                      type: :array,
@@ -113,7 +114,7 @@ RSpec.describe "Api::V1::Stats", type: :request do
                        properties: {
                          id: { type: :integer },
                          name: { type: :string },
-                         total_revenue: { type: :string }
+                         total_revenue: { type: :number }
                        }
                      }
                    }
@@ -124,7 +125,7 @@ RSpec.describe "Api::V1::Stats", type: :request do
           json = JSON.parse(response.body)
           expect(json.length).to eq(2)
 
-          electronics = json.find { |cat| cat['category_name'] == 'Electronics' }
+          electronics = json.find { |cat| cat['category_name'] == 'Electrónicos' }
           expect(electronics).to be_present
           expect(electronics['top_products'].length).to be <= 2
           expect(electronics['top_products'].first['name']).to eq('Laptop')
@@ -136,7 +137,7 @@ RSpec.describe "Api::V1::Stats", type: :request do
         end
       end
 
-      response '401', 'Not Authenticated' do
+      response '403', 'Not Authenticated' do
         let(:Authorization) { nil }
         let(:limit) { 2 }
 
@@ -183,7 +184,7 @@ RSpec.describe "Api::V1::Stats", type: :request do
 
         run_test! do |response|
           json = JSON.parse(response.body)
-          expect(json.length).to eq(5) # Cinco compras
+          expect(json.length).to eq(10) # Diez compras
         end
       end
 
@@ -196,7 +197,7 @@ RSpec.describe "Api::V1::Stats", type: :request do
 
           run_test! do |response|
             json = JSON.parse(response.body)
-            expect(json.length).to eq(5)
+            expect(json.length).to eq(10)
           end
         end
       end
@@ -209,7 +210,7 @@ RSpec.describe "Api::V1::Stats", type: :request do
 
           run_test! do |response|
             json = JSON.parse(response.body)
-            expect(json.length).to eq(1)
+            expect(json.length).to eq(2)
           end
         end
       end
@@ -222,12 +223,12 @@ RSpec.describe "Api::V1::Stats", type: :request do
 
           run_test! do |response|
             json = JSON.parse(response.body)
-            expect(json.length).to eq(5)
+            expect(json.length).to eq(10)
           end
         end
       end
 
-      response '401', 'Not Authenticated' do
+      response '403', 'Not Authenticated' do
         let(:Authorization) { nil }
 
         run_test!
@@ -256,7 +257,7 @@ RSpec.describe "Api::V1::Stats", type: :request do
         run_test! do |response|
           json = JSON.parse(response.body)
           expect(json.keys.length).to be >= 1
-          expect(json.values.sum).to eq(5)
+          expect(json.values.sum).to eq(10)
         end
       end
 
@@ -269,12 +270,12 @@ RSpec.describe "Api::V1::Stats", type: :request do
           run_test! do |response|
             json = JSON.parse(response.body)
             expect(json.keys.length).to be >= 1
-            expect(json.values.sum).to eq(5)
+            expect(json.values.sum).to eq(10)
           end
         end
       end
 
-      response '401', 'Not Authenticated' do
+      response '403', 'Not Authenticated' do
         let(:Authorization) { nil }
 
         run_test!

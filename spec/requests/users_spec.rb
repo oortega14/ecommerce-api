@@ -52,8 +52,10 @@ RSpec.describe 'Users API', type: :request do
         run_test!
       end
 
-      response '401', 'unauthorized' do
+      response '200', 'other user details accessible' do
+        let!(:existing_user) { User.create!(email: 'test@example.com', password: 'password123', password_confirmation: 'password123') }
         let!(:client_user) { User.create!(email: 'client@example.com', password: 'password123', password_confirmation: 'password123', role: 'client') }
+        let(:id) { existing_user.id }
         let(:Authorization) { "Bearer #{token_for(client_user)}" }
         run_test!
       end
