@@ -1,12 +1,13 @@
 class FirstPurchaseEmailJob < ApplicationJob
   queue_as :default
 
-  def perform(client_id, purchase_id)
-    client = User.find(client_id)
-    purchase = Purchase.find(purchase_id)
+  def perform(purchase_id)
+    purchase = Purchase.find_by(id: purchase_id)
+    return unless purchase
 
-    # Aquí iría la lógica para enviar el email
-    # Por ejemplo:
-    # PurchaseMailer.first_purchase(client, purchase).deliver_now
+    product = purchase.product
+
+
+    ProductMailer.first_purchase_notification(product, purchase).deliver_now
   end
 end

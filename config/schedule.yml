@@ -1,8 +1,6 @@
-# Configuraciu00f3n de trabajos programados con sidekiq-cron
-
-# Reporte diario de compras - se ejecuta todos los du00edas a las 6:00 AM
+# Reporte diario de compras - se ejecuta todos los días a las 6:00 AM
 daily_purchase_report:
-  cron: '0 6 * * *' # Minuto 0, hora 6, todos los du00edas, todos los meses, todos los du00edas de la semana
+  cron: '0 6 * * *'
   class: 'DailyPurchaseReportJob'
   queue: default
-  description: 'Envu00eda un reporte diario de compras a todos los administradores'
+  description: 'Envia un reporte diario de compras a todos los administradores'

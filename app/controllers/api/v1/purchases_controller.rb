@@ -1,48 +1,50 @@
 class Api::V1::PurchasesController < ApplicationController
+  before_action :authenticate_user
+  before_action :set_purchase, only: %i[ show ]
+
   # GET /api/v1/purchases
   def index
-    @purchases = current_user.purchases.includes(:product).order(created_at: :desc)
-    render json: @purchases
+    purchases = if current_user.admin?
+      Purchase.all.order(created_at: :desc)
+    else
+      current_user.purchases.order(created_at: :desc)
+    end
+    render_with(purchases, context: { view: view_param })
   end
 
   # GET /api/v1/purchases/:id
   def show
-    @purchase = find_purchase
-    if @purchase
-      render json: @purchase
-    else
-      render json: { error: 'Purchase not found' }, status: :not_found
-    end
+    render_with(@purchase, context: { view: view_param })
   end
 
   # POST /api/v1/purchases
   def create
-    Purchase.transaction do
-      @purchase = current_user.purchases.new(purchase_params)
-      if @purchase.product.nil?
-        render json: { errors: [ 'Product must exist' ] }, status: :unprocessable_entity
-        return
-      end
-
-      @purchase.total_price = @purchase.quantity * @purchase.product.price
-
-      if @purchase.save
-        render json: @purchase, status: :created
-      else
-        render json: { errors: @purchase.errors.full_messages }, status: :unprocessable_entity
-      end
+    purchase = Purchase.new(purchase_params)
+    if purchase.product.nil?
+      render json: { errors: [ 'Product must exist' ] }, status: :unprocessable_entity
+      return
     end
+
+    purchase.client = current_user
+    purchase.total_price = purchase.quantity * purchase.product.price
+    debugger
+
+    render_with(purchase)
   end
 
   private
 
-  def find_purchase
-    current_user.purchases.find(params[:id])
+  def set_purchase
+    @purchase = current_user.admin? ? Purchase.find(params[:id]) : current_user.purchases.find(params[:id])
   rescue ActiveRecord::RecordNotFound
-    nil
+    raise ApiExceptions::BaseException.new(:RECORD_NOT_FOUND, [], {})
   end
 
   def purchase_params
     params.require(:purchase).permit(:product_id, :quantity)
+  end
+
+  def view_param
+    params[:view]&.to_sym
   end
 end

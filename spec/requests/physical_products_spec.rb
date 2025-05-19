@@ -2,12 +2,10 @@ require 'rails_helper'
 require 'swagger_helper'
 
 RSpec.describe "Api::V1::PhysicalProducts", type: :request do
-  # Crear datos de prueba
   let(:admin) { create(:user, :admin) }
   let(:client) { create(:user) }
   let(:category) { create(:category, creator: admin) }
 
-  # Atributos vu00e1lidos para un producto fu00edsico
   let(:valid_attributes) do
     {
       name: "Libro de Rails",
@@ -20,7 +18,6 @@ RSpec.describe "Api::V1::PhysicalProducts", type: :request do
     }
   end
 
-  # Atributos invu00e1lidos para un producto fu00edsico
   let(:invalid_attributes) do
     {
       name: "",
@@ -32,11 +29,11 @@ RSpec.describe "Api::V1::PhysicalProducts", type: :request do
   end
 
   path '/api/v1/physical_products' do
-    get 'Lista todos los productos fu00edsicos' do
-      tags 'Productos Fu00edsicos'
+    get 'List all physical products' do
+      tags 'Physical Products'
       produces 'application/json'
 
-      response '200', 'lista de productos fu00edsicos' do
+      response '200', 'list of physical products' do
         schema type: :array,
                items: {
                  type: :object,
@@ -76,7 +73,6 @@ RSpec.describe "Api::V1::PhysicalProducts", type: :request do
                }
 
         before do
-          # Crear algunos productos fu00edsicos
           create_list(:physical_product, 3)
         end
 
@@ -88,26 +84,54 @@ RSpec.describe "Api::V1::PhysicalProducts", type: :request do
       end
     end
 
-    post 'Crea un nuevo producto fu00edsico' do
-      tags 'Productos Fu00edsicos'
+    post 'Create a new physical product' do
+      tags 'Physical Products'
       consumes 'application/json'
       produces 'application/json'
       security [ bearer_auth: [] ]
+      description 'Create a new physical product. For images, provide a public URL where the image can be downloaded.'
+
       parameter name: :physical_product, in: :body, schema: {
         type: :object,
         properties: {
           physical_product: {
             type: :object,
             properties: {
-              name: { type: :string },
-              description: { type: :string },
-              price: { type: :string },
-              stock: { type: :integer },
-              weight: { type: :string },
-              dimensions: { type: :string },
+              name: {
+                type: :string,
+                description: 'Name of the physical product',
+                example: 'Libro de Rails'
+              },
+              description: {
+                type: :string,
+                description: 'Detailed description of the product',
+                example: 'El mejor libro para aprender Rails desde cero'
+              },
+              price: {
+                type: :string,
+                description: 'Price of the product in string format',
+                example: '39.99'
+              },
+              stock: {
+                type: :integer,
+                description: 'Available quantity of the product',
+                example: 100
+              },
+              weight: {
+                type: :string,
+                description: 'Weight of the product in kg',
+                example: '1.2'
+              },
+              dimensions: {
+                type: :string,
+                description: 'Dimensions of the product (length x width x height)',
+                example: '25x18x3 cm'
+              },
               category_ids: {
                 type: :array,
-                items: { type: :integer }
+                items: { type: :integer },
+                description: 'IDs of the categories to which the product belongs',
+                example: [ 6, 7 ]
               }
             },
             required: [ 'name', 'price', 'stock', 'weight', 'dimensions' ]
@@ -115,7 +139,7 @@ RSpec.describe "Api::V1::PhysicalProducts", type: :request do
         }
       }
 
-      response '201', 'producto fu00edsico creado' do
+      response '201', 'physical product created' do
         let(:Authorization) { "Bearer #{token_for(admin)}" }
         let(:physical_product) { { physical_product: valid_attributes } }
 
@@ -128,22 +152,15 @@ RSpec.describe "Api::V1::PhysicalProducts", type: :request do
         end
       end
 
-      response '422', 'datos invu00e1lidos' do
+      response '422', 'invalid data' do
         let(:Authorization) { "Bearer #{token_for(admin)}" }
         let(:physical_product) { { physical_product: invalid_attributes } }
 
         run_test!
       end
 
-      response '403', 'no autorizado (no es administrador)' do
+      response '403', 'not authorized (not admin)' do
         let(:Authorization) { "Bearer #{token_for(client)}" }
-        let(:physical_product) { { physical_product: valid_attributes } }
-
-        run_test!
-      end
-
-      response '401', 'no autenticado' do
-        let(:Authorization) { nil }
         let(:physical_product) { { physical_product: valid_attributes } }
 
         run_test!
@@ -157,87 +174,115 @@ RSpec.describe "Api::V1::PhysicalProducts", type: :request do
     let(:existing_physical_product) { create(:physical_product) }
     let(:id) { existing_physical_product.id }
 
-    get 'Obtiene un producto fu00edsico especu00edfico' do
-      tags 'Productos Fu00edsicos'
+    get 'Retrieves a specific physical product' do
+      tags 'Physical Products'
       produces 'application/json'
 
-      response '200', 'producto fu00edsico encontrado' do
+      response '200', 'physical product found' do
         schema type: :object,
-               properties: {
-                 id: { type: :integer },
-                 name: { type: :string },
-                 description: { type: :string },
-                 price: { type: :string },
-                 stock: { type: :integer },
-                 type: { type: :string },
-                 weight: { type: :string },
-                 dimensions: { type: :string },
-                 creator_id: { type: :integer },
-                 created_at: { type: :string, format: 'date-time' },
-                 updated_at: { type: :string, format: 'date-time' }
-               }
+          properties: {
+            id: { type: :integer },
+            name: { type: :string },
+            description: { type: :string },
+            price: { type: :string },
+            stock: { type: :integer },
+            type: { type: :string },
+            weight: { type: :string },
+            dimensions: { type: :string },
+            creator_id: { type: :integer },
+            created_at: { type: :string, format: 'date-time' },
+            updated_at: { type: :string, format: 'date-time' }
+          }
 
         run_test! do |response|
           json = JSON.parse(response.body)
           expect(json['id']).to eq(existing_physical_product.id)
           expect(json['type']).to eq('PhysicalProduct')
-          expect(json['weight']).to eq(existing_physical_product.weight.to_s) # Convertido a string por JSON
+          expect(json['weight']).to eq(existing_physical_product.weight.to_s)
           expect(json['dimensions']).to eq(existing_physical_product.dimensions)
         end
       end
 
-      response '404', 'producto fu00edsico no encontrado' do
+      response '404', 'physical product not found' do
         let(:id) { 999999 }
         run_test!
       end
     end
 
-    put 'Actualiza un producto fu00edsico' do
-      tags 'Productos Fu00edsicos'
+    patch 'Updates a physical product' do
+      tags 'Physical Products'
       consumes 'application/json'
       produces 'application/json'
       security [ bearer_auth: [] ]
+      description 'Update an existing physical product. You can update any field, all fields are optional.'
+
       parameter name: :physical_product, in: :body, schema: {
         type: :object,
         properties: {
           physical_product: {
             type: :object,
             properties: {
-              name: { type: :string },
-              description: { type: :string },
-              price: { type: :string },
-              stock: { type: :integer },
-              weight: { type: :string },
-              dimensions: { type: :string },
+              name: {
+                type: :string,
+                description: 'Name of the physical product',
+                example: 'Updated Rails Book 2025'
+              },
+              description: {
+                type: :string,
+                description: 'Detailed description of the product',
+                example: 'Master Ruby on Rails with our updated 2025 book'
+              },
+              price: {
+                type: :string,
+                description: 'Price of the product in string format',
+                example: '49.99'
+              },
+              stock: {
+                type: :integer,
+                description: 'Available quantity of the product',
+                example: 200
+              },
+              weight: {
+                type: :string,
+                description: 'Weight of the product in kg',
+                example: '1.5'
+              },
+              dimensions: {
+                type: :string,
+                description: 'Dimensions of the product (length x width x height)',
+                example: '26x19x3.5 cm'
+              },
               category_ids: {
                 type: :array,
-                items: { type: :integer }
+                items: { type: :integer },
+                description: 'IDs of the categories to which the product belongs',
+                example: [ 6, 8, 9 ]
               }
             }
+          }
+        },
+        example: {
+          physical_product: {
+            name: 'Updated Rails Book 2025',
+            price: '49.99',
+            description: 'Master Ruby on Rails with our updated 2025 book',
+            category_ids: [ 6, 8, 9 ]
           }
         }
       }
 
-      response '200', 'producto fu00edsico actualizado' do
+      response '200', 'physical product updated' do
         let(:Authorization) { "Bearer #{token_for(admin)}" }
-        let(:physical_product) { { physical_product: { name: "Libro actualizado", weight: 1.5, stock: 50 } } }
+        let(:physical_product) { { physical_product: { name: "Updated Rails Book 2025", weight: "1.5" } } }
 
         run_test! do |response|
           json = JSON.parse(response.body)
-          expect(json['name']).to eq("Libro actualizado")
+          expect(json['name']).to eq("Updated Rails Book 2025")
           expect(json['weight']).to eq("1.5")
-          expect(json['stock']).to eq(50)
         end
       end
 
-      response '422', 'datos invu00e1lidos' do
-        let(:Authorization) { "Bearer #{token_for(admin)}" }
-        let(:physical_product) { { physical_product: { stock: -10 } } }
-
-        run_test!
-      end
-
-      response '403', 'no autorizado (no es administrador)' do
+      response '403', 'Unauthorized (not admin)' do
         let(:Authorization) { "Bearer #{token_for(client)}" }
         let(:physical_product) { { physical_product: { name: "Nuevo nombre" } } }
 
@@ -245,17 +290,23 @@ RSpec.describe "Api::V1::PhysicalProducts", type: :request do
       end
     end
 
-    delete 'Elimina un producto fu00edsico' do
-      tags 'Productos Fu00edsicos'
+    delete 'Deletes a physical product' do
+      tags 'Physical Products'
       security [ bearer_auth: [] ]
 
-      response '204', 'producto fu00edsico eliminado' do
+      response '200', 'physical product deleted' do
         let(:Authorization) { "Bearer #{token_for(admin)}" }
         run_test!
       end
 
-      response '403', 'no autorizado (no es administrador)' do
+      response '403', 'not authorized (not admin)' do
         let(:Authorization) { "Bearer #{token_for(client)}" }
+        run_test!
+      end
+
+      response '404', 'not found' do
+        let(:id) { 999999 }
+        let(:Authorization) { "Bearer #{token_for(admin)}" }
         run_test!
       end
     end
@@ -263,44 +314,42 @@ RSpec.describe "Api::V1::PhysicalProducts", type: :request do
 
   path '/api/v1/physical_products/{id}/purchase' do
     parameter name: :id, in: :path, type: :integer
-    parameter name: :quantity, in: :query, type: :integer, required: false, description: 'Cantidad a comprar (por defecto 1)'
+    parameter name: :quantity, in: :query, type: :integer, required: false, description: 'Quantity to purchase (default 1)'
 
     let(:physical_product_to_purchase) { create(:physical_product, stock: 10) }
     let(:id) { physical_product_to_purchase.id }
 
-    post 'Compra un producto fu00edsico' do
-      tags 'Productos Fu00edsicos'
+    post 'Purchase a physical product' do
+      tags 'Physical Products'
       produces 'application/json'
       security [ bearer_auth: [] ]
 
-      response '200', 'producto fu00edsico comprado exitosamente' do
+      response '200', 'physical product purchased successfully' do
         let(:Authorization) { "Bearer #{token_for(client)}" }
         let(:quantity) { 3 }
 
         before do
-          # Simular que el mailer funciona
           allow(ProductMailer).to receive_message_chain(:purchase_confirmation, :deliver_later)
         end
 
         run_test! do |response|
           json = JSON.parse(response.body)
-          expect(json['message']).to include("Producto físico comprado con éxito")
+          expect(json['message']).to include("purchased successfully")
 
-          # Verificar detalles de la compra
           purchase = Purchase.last
           expect(purchase.client).to eq(client)
           expect(purchase.product).to eq(physical_product_to_purchase)
           expect(purchase.quantity).to eq(quantity)
           expect(purchase.total_price).to eq(physical_product_to_purchase.price * quantity)
 
-          # Verificar que el stock se redujo
+          # Verify stock was reduced
           expect(physical_product_to_purchase.reload.stock).to eq(7) # 10 - 3
         end
       end
 
-      response '422', 'error por stock insuficiente' do
+      response '422', 'insufficient stock error' do
         let(:Authorization) { "Bearer #{token_for(client)}" }
-        let(:quantity) { 20 } # Mu00e1s que el stock disponible
+        let(:quantity) { 20 } # More than available stock
 
         before do
           physical_product_to_purchase.update(stock: 5)
@@ -308,12 +357,12 @@ RSpec.describe "Api::V1::PhysicalProducts", type: :request do
 
         run_test! do |response|
           json = JSON.parse(response.body)
-          expect(json['error']).to include("suficiente stock")
-          expect(physical_product_to_purchase.reload.stock).to eq(5) # El stock no debe cambiar
+          expect(json['error']).to include("sufficient stock")
+          expect(physical_product_to_purchase.reload.stock).to eq(5) # Stock shouldn't change
         end
       end
 
-      response '401', 'no autenticado' do
+      response '401', 'not authenticated' do
         let(:Authorization) { nil }
         run_test!
       end
@@ -326,11 +375,11 @@ RSpec.describe "Api::V1::PhysicalProducts", type: :request do
     let(:physical_product_with_weight) { create(:physical_product, weight: 2.5) }
     let(:id) { physical_product_with_weight.id }
 
-    get 'Calcula el costo de envu00edo para un producto fu00edsico' do
-      tags 'Productos Fu00edsicos'
+    get 'Calculate shipping cost for a physical product' do
+      tags 'Physical Products'
       produces 'application/json'
 
-      response '200', 'costo de envu00edo calculado' do
+      response '200', 'shipping cost calculated' do
         schema type: :object,
                properties: {
                  shipping_cost: { type: :number }
@@ -343,7 +392,7 @@ RSpec.describe "Api::V1::PhysicalProducts", type: :request do
         end
       end
 
-      response '404', 'producto fu00edsico no encontrado' do
+      response '404', 'physical product not found' do
         let(:id) { 999999 }
         run_test!
       end

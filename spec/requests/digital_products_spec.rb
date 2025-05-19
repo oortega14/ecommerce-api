@@ -324,19 +324,17 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
       produces 'application/json'
       security [ bearer_auth: [] ]
 
-      response '200', 'producto digital comprado exitosamente' do
+      response '200', 'digital product purchased successfully' do
         let(:Authorization) { "Bearer #{token_for(client)}" }
 
         before do
-          # Simular que el mailer funciona
           allow(ProductMailer).to receive_message_chain(:download_link, :deliver_later)
         end
 
         run_test! do |response|
           json = JSON.parse(response.body)
-          expect(json['message']).to include("comprado con u00e9xito")
+          expect(json['message']).to include("purchased successfully")
 
-          # Verificar detalles de la compra
           purchase = Purchase.last
           expect(purchase.client).to eq(client)
           expect(purchase.product).to eq(digital_product_to_purchase)
@@ -345,7 +343,7 @@ RSpec.describe "Api::V1::DigitalProducts", type: :request do
         end
       end
 
-      response '401', 'no autenticado' do
+      response '401', 'not authenticated' do
         let(:Authorization) { nil }
         run_test!
       end

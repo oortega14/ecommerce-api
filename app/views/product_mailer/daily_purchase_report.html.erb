@@ -8,7 +8,7 @@
     
     <p>Estimados administradores,</p>
     
-    <p>A continuaciu00f3n se presenta el reporte de compras realizadas durante el du00eda <%= @date.strftime("%d/%m/%Y") %>.</p>
+    <p>A continuación se presenta el reporte de compras realizadas durante el día <%= @date.strftime("%d/%m/%Y") %>.</p>
     
     <h2>Resumen de ventas:</h2>
     <p><strong>Total de compras:</strong> <%= @purchases.count %></p>
@@ -22,7 +22,7 @@
             <th>Producto</th>
             <th>Tipo</th>
             <th>Cantidad vendida</th>
-            <th>Nu00famero de compras</th>
+            <th>Número de compras</th>
             <th>Ingresos generados</th>
           </tr>
         </thead>
@@ -45,12 +45,12 @@
         </tfoot>
       </table>
     <% else %>
-      <p><em>No se registraron compras en este du00eda.</em></p>
+      <p><em>No se registraron compras en este día.</em></p>
     <% end %>
     
-    <p>Este reporte se genera automu00e1ticamente. Para ver mu00e1s detalles, accede al panel de administraciu00f3n.</p>
+    <p>Este reporte se genera automáticamente. Para ver más detalles, accede al panel de administración.</p>
     
     <p>Saludos,<br>
-    Sistema Automu00e1tico de Ecommerce API</p>
+    Sistema Automático de Ecommerce API</p>
   </body>
 </html>

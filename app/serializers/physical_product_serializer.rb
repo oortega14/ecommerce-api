@@ -1,4 +1,4 @@
-class ProductSerializer < BaseSerializer
+class PhysicalProductSerializer < BaseSerializer
   def serializable_hash
     case context[:view]
     when :summary
@@ -12,14 +12,15 @@ class ProductSerializer < BaseSerializer
 
   private
 
-  # Full Hash response
   def full_hash
     {
       id: resource.id,
       name: resource.name,
       description: resource.description,
       price: resource.price,
+      stock: resource.stock,
       weight: resource.weight,
+      dimensions: resource.dimensions,
       creator_id: resource.creator_id,
       created_at: resource.created_at,
       updated_at: resource.updated_at,
@@ -27,17 +28,18 @@ class ProductSerializer < BaseSerializer
     }
   end
 
-  # Summary Hash response
   def summary_hash
     {
       id: resource.id,
       name: resource.name,
       price: resource.price,
-      attachments: serialize_attachments
+      stock: resource.stock,
+      weight: resource.weight,
+      dimensions: resource.dimensions,
+      creator_id: resource.creator_id
     }
   end
 
-  # Minimal Hash response
   def minimal_hash
     {
       id: resource.id,
@@ -52,7 +54,7 @@ class ProductSerializer < BaseSerializer
     resource.attachments.map do |attachment|
       {
         id: attachment.id,
-        url: attachment.image.attached? ? attachment.image.url : nil
+        url: attachment.image.attached? ? Rails.application.routes.url_helpers.rails_blob_url(attachment.image) : nil
       }
     end
   end

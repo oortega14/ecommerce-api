@@ -16,7 +16,9 @@ module ApiExceptions
         EMAIL_NOT_UNIQUE: { code: 1006, message: I18n.t('base_exceptions.email_not_unique') },
         PASSWORD_TOO_SHORT: { code: 1007, message: I18n.t('base_exceptions.password_too_short') },
         # Validaciones de productos
-        CANNOT_PURCHASE: { code: 1008, message: I18n.t('base_exceptions.cannot_purchase') }
+        CANNOT_PURCHASE: { code: 1008, message: I18n.t('base_exceptions.cannot_purchase') },
+        # Validaciones de fechas
+        INVALID_DATE_FORMAT: { code: 1009, message: I18n.t('base_exceptions.invalid_date_format') }
       }
     end
 

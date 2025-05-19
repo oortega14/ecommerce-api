@@ -1,4 +1,7 @@
 class Category < ApplicationRecord
+  # Audited
+  audited
+
   # Associations
   belongs_to :creator, class_name: 'User'
 

@@ -1,2 +1,0 @@
-class SubscriptionProduct < Product
-end

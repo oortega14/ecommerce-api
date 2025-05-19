@@ -39,11 +39,11 @@ module Api
         begin
           purchase = @digital_product.purchase_by(current_user)
           render json: {
-            message: 'Producto digital comprado con éxito',
+            message: 'Digital product purchased successfully',
             purchase: purchase
           }
         rescue StandardError => e
-          raise ApiExceptions::BaseException.new(:CANNOT_PURCHASE, [], {})
+          raise ApiExceptions::BaseException.new(:CANNOT_PURCHASE, [], { error: e.message })
         end
       end
 

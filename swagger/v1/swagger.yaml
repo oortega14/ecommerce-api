@@ -448,7 +448,7 @@ paths:
       security:
       - bearer_auth: []
       responses:
-        '204':
+        '200':
           description: digital product deleted
         '403':
           description: not authorized (not admin)
@@ -469,17 +469,17 @@ paths:
       - bearer_auth: []
       responses:
         '200':
-          description: producto digital comprado exitosamente
+          description: digital product purchased successfully
         '401':
-          description: no autenticado
+          description: not authenticated
   "/api/v1/physical_products":
     get:
-      summary: Lista todos los productos fu00edsicos
+      summary: List all physical products
       tags:
-      - Productos Fu00edsicos
+      - Physical Products
       responses:
         '200':
-          description: lista de productos fu00edsicos
+          description: list of physical products
           content:
             application/json:
               schema:
@@ -530,21 +530,21 @@ paths:
                           url:
                             type: string
     post:
-      summary: Crea un nuevo producto fu00edsico
+      summary: Create a new physical product
       tags:
-      - Productos Fu00edsicos
+      - Physical Products
       security:
       - bearer_auth: []
+      description: Create a new physical product. For images, provide a public URL
+        where the image can be downloaded.
       parameters: []
       responses:
         '201':
-          description: producto fu00edsico creado
+          description: physical product created
         '422':
-          description: datos invu00e1lidos
+          description: invalid data
         '403':
-          description: no autorizado (no es administrador)
-        '401':
-          description: no autenticado
+          description: not authorized (not admin)
       requestBody:
         content:
           application/json:
@@ -556,20 +556,36 @@ paths:
                   properties:
                     name:
                       type: string
+                      description: Name of the physical product
+                      example: Libro de Rails
                     description:
                       type: string
+                      description: Detailed description of the product
+                      example: El mejor libro para aprender Rails desde cero
                     price:
                       type: string
+                      description: Price of the product in string format
+                      example: '39.99'
                     stock:
                       type: integer
+                      description: Available quantity of the product
+                      example: 100
                     weight:
                       type: string
+                      description: Weight of the product in kg
+                      example: '1.2'
                     dimensions:
                       type: string
+                      description: Dimensions of the product (length x width x height)
+                      example: 25x18x3 cm
                     category_ids:
                       type: array
                       items:
                         type: integer
+                      description: IDs of the categories to which the product belongs
+                      example:
+                      - 6
+                      - 7
                   required:
                   - name
                   - price
@@ -584,12 +600,12 @@ paths:
       schema:
         type: integer
     get:
-      summary: Obtiene un producto fu00edsico especu00edfico
+      summary: Retrieves a specific physical product
       tags:
-      - Productos Fu00edsicos
+      - Physical Products
       responses:
         '200':
-          description: producto fu00edsico encontrado
+          description: physical product found
           content:
             application/json:
               schema:
@@ -620,21 +636,21 @@ paths:
                     type: string
                     format: date-time
         '404':
-          description: producto fu00edsico no encontrado
-    put:
-      summary: Actualiza un producto fu00edsico
+          description: physical product not found
+    patch:
+      summary: Updates a physical product
       tags:
-      - Productos Fu00edsicos
+      - Physical Products
       security:
       - bearer_auth: []
+      description: Update an existing physical product. You can update any field,
+        all fields are optional.
       parameters: []
       responses:
         '200':
-          description: producto fu00edsico actualizado
-        '422':
-          description: datos invu00e1lidos
+          description: physical product updated
         '403':
-          description: no autorizado (no es administrador)
+          description: Unauthorized (not admin)
       requestBody:
         content:
           application/json:
@@ -646,31 +662,59 @@ paths:
                   properties:
                     name:
                       type: string
+                      description: Name of the physical product
+                      example: Updated Rails Book 2025
                     description:
                       type: string
+                      description: Detailed description of the product
+                      example: Master Ruby on Rails with our updated 2025 book
                     price:
                       type: string
+                      description: Price of the product in string format
+                      example: '49.99'
                     stock:
                       type: integer
+                      description: Available quantity of the product
+                      example: 200
                     weight:
                       type: string
+                      description: Weight of the product in kg
+                      example: '1.5'
                     dimensions:
                       type: string
+                      description: Dimensions of the product (length x width x height)
+                      example: 26x19x3.5 cm
                     category_ids:
                       type: array
                       items:
                         type: integer
+                      description: IDs of the categories to which the product belongs
+                      example:
+                      - 6
+                      - 8
+                      - 9
+              example:
+                physical_product:
+                  name: Updated Rails Book 2025
+                  price: '49.99'
+                  description: Master Ruby on Rails with our updated 2025 book
+                  category_ids:
+                  - 6
+                  - 8
+                  - 9
     delete:
-      summary: Elimina un producto fu00edsico
+      summary: Deletes a physical product
       tags:
-      - Productos Fu00edsicos
+      - Physical Products
       security:
       - bearer_auth: []
       responses:
-        '204':
-          description: producto fu00edsico eliminado
+        '200':
+          description: physical product deleted
         '403':
-          description: no autorizado (no es administrador)
+          description: not authorized (not admin)
+        '404':
+          description: not found
   "/api/v1/physical_products/{id}/purchase":
     parameters:
     - name: id
@@ -681,22 +725,22 @@ paths:
     - name: quantity
       in: query
       required: false
-      description: Cantidad a comprar (por defecto 1)
+      description: Quantity to purchase (default 1)
       schema:
         type: integer
     post:
-      summary: Compra un producto fu00edsico
+      summary: Purchase a physical product
       tags:
-      - Productos Fu00edsicos
+      - Physical Products
       security:
       - bearer_auth: []
       responses:
         '200':
-          description: producto fu00edsico comprado exitosamente
+          description: physical product purchased successfully
         '422':
-          description: error por stock insuficiente
+          description: insufficient stock error
         '401':
-          description: no autenticado
+          description: not authenticated
   "/api/v1/physical_products/{id}/shipping_cost":
     parameters:
     - name: id
@@ -705,12 +749,12 @@ paths:
       schema:
         type: integer
     get:
-      summary: Calcula el costo de envu00edo para un producto fu00edsico
+      summary: Calculate shipping cost for a physical product
       tags:
-      - Productos Fu00edsicos
+      - Physical Products
       responses:
         '200':
-          description: costo de envu00edo calculado
+          description: shipping cost calculated
           content:
             application/json:
               schema:
@@ -719,7 +763,7 @@ paths:
                   shipping_cost:
                     type: number
         '404':
-          description: producto fu00edsico no encontrado
+          description: physical product not found
   "/api/v1/purchases":
     get:
       summary: Lists purchases
@@ -784,9 +828,9 @@ paths:
           description: unauthorized
   "/api/v1/stats/top_products":
     get:
-      summary: Obtiene los productos más vendidos por cantidad para cada categoría
+      summary: Get top products by quantity for each category
       tags:
-      - Estadísticas
+      - Statistics
       security:
       - bearer_auth: []
       responses:
@@ -813,26 +857,26 @@ paths:
                           quantity_sold:
                             type: integer
         '401':
-          description: no autenticado
+          description: Not Authenticated
         '403':
-          description: no autorizado (no es administrador)
+          description: Unauthorized (not admin)
   "/api/v1/stats/most_purchased":
     get:
-      summary: Obtiene los productos que más han recaudado por categoría
+      summary: Get most purchased products by category
       tags:
-      - Estadísticas
+      - Statistics
       security:
       - bearer_auth: []
       parameters:
       - name: limit
         in: query
         required: false
-        description: Límite de productos por categoría (por defecto 3)
+        description: Limit of products per category (default 3)
         schema:
           type: integer
       responses:
         '200':
-          description: lista de productos que más han recaudado por categoría
+          description: list of products that have generated the most revenue per category
           content:
             application/json:
               schema:
@@ -854,44 +898,44 @@ paths:
                           total_revenue:
                             type: string
         '401':
-          description: no autenticado
+          description: Not Authenticated
         '403':
-          description: no autorizado (no es administrador)
+          description: Unauthorized (not admin)
   "/api/v1/stats/purchases":
     get:
-      summary: Obtiene listado de compras con filtros opcionales
+      summary: Get list of purchases with optional filters
       tags:
-      - Estadísticas
+      - Statistics
       security:
       - bearer_auth: []
       parameters:
       - name: start_date
         in: query
         required: false
-        description: Fecha de inicio (formato YYYY-MM-DD)
+        description: Start date (format YYYY-MM-DD)
         schema:
           type: string
       - name: end_date
         in: query
         required: false
-        description: Fecha de fin (formato YYYY-MM-DD)
+        description: End date (format YYYY-MM-DD)
         schema:
           type: string
       - name: category_id
         in: query
         required: false
-        description: ID de la categoría
+        description: Category ID
         schema:
           type: integer
       - name: client_id
         in: query
         required: false
-        description: ID del cliente
+        description: Client ID
         schema:
           type: integer
       responses:
         '200':
-          description: compras filtradas por cliente
+          description: List of purchases filtered by client
           content:
             application/json:
               schema:
@@ -917,20 +961,20 @@ paths:
                     client_email:
                       type: string
         '401':
-          description: no autorizado
+          description: Not Authenticated
   "/api/v1/stats/purchase_counts":
     get:
-      summary: Obtiene conteo de compras agrupadas por tiempo
+      summary: Get purchase counts grouped by time
       tags:
-      - Estadísticas
+      - Statistics
       security:
       - bearer_auth: []
       parameters:
       - name: granularity
         in: query
         required: false
-        description: "Granularidad de tiempo (hour, day, week, year):\n * `hour` \n
-          * `day` \n * `week` \n * `year` \n "
+        description: "Time granularity (hour, day, week, year):\n * `hour` \n * `day`
+          \n * `week` \n * `year` \n "
         enum:
         - hour
         - day
@@ -940,7 +984,7 @@ paths:
           type: string
       responses:
         '200':
-          description: conteo de compras agrupadas por hora
+          description: Purchase counts grouped by hour
           content:
             application/json:
               schema:
@@ -948,7 +992,7 @@ paths:
                 additionalProperties:
                   type: integer
         '401':
-          description: no autorizado
+          description: Not Authenticated
   "/api/v1/users":
     get:
       summary: Lists all client users

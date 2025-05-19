@@ -174,7 +174,7 @@ RSpec.describe 'Categories API', type: :request do
       produces 'application/json'
       security [ bearer_auth: [] ]
 
-      response '204', 'category deleted' do
+      response '200', 'category deleted' do
         let!(:admin_user) { User.create!(email: 'admin@example.com', password: 'password123', password_confirmation: 'password123', role: 'admin') }
         let!(:existing_category) { Category.create!(name: 'Electronics', description: 'Electronic devices', creator: admin_user) }
         let(:id) { existing_category.id }

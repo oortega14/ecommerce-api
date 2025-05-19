@@ -1,5 +1,4 @@
 class StatsService
-  # Obtener los productos mu00e1s vendidos por cantidad para cada categoru00eda
   def self.top_products_by_quantity
     categories = Category.includes(:products)
 
@@ -9,7 +8,7 @@ class StatsService
                             .select('products.*, SUM(purchases.quantity) as total_quantity')
                             .group('products.id')
                             .order('total_quantity DESC')
-                            .limit(5)
+                            .limit(2)
 
       {
         category_id: category.id,
@@ -18,18 +17,16 @@ class StatsService
           {
             id: product.id,
             name: product.name,
-            total_quantity: product.total_quantity
+            total_quantity: product.total_quantity.to_i
           }
         end
       }
     end
   end
 
-  # Obtener los productos mu00e1s vendidos por ingresos para cada categoru00eda
   def self.top_products_by_revenue(limit = 3)
     categories = Category.includes(:products)
 
-    # Usar el límite proporcionado o el valor predeterminado
     limit = limit.to_i > 0 ? limit.to_i : 3
 
     categories.map do |category|
@@ -47,22 +44,31 @@ class StatsService
           {
             id: product.id,
             name: product.name,
-            total_revenue: product.total_revenue
+            total_revenue: product.total_revenue.to_f.round(2)
           }
         end
       }
     end
   end
 
-  # Obtener compras filtradas
   def self.filtered_purchases(params)
-    purchases = Purchase.all
+    purchases = Purchase.all.includes(:product, :client)
 
     if params[:start_date].present?
-      purchases = purchases.where('purchases.created_at >= ?', params[:start_date].to_date.beginning_of_day)
+      begin
+        start_date = Date.parse(params[:start_date]).beginning_of_day
+        purchases = purchases.where('purchases.created_at >= ?', start_date)
+      rescue ArgumentError
+        raise ApiExceptions::BaseException.new(:INVALID_DATE_FORMAT, [], {})
+      end
     end
+
     if params[:end_date].present?
-      purchases = purchases.where('purchases.created_at <= ?', params[:end_date].to_date.end_of_day)
+      begin
+        end_date = Date.parse(params[:end_date]).end_of_day
+        purchases = purchases.where('purchases.created_at <= ?', end_date)
+      rescue ArgumentError
+      end
     end
 
     if params[:category_id].present?
@@ -82,41 +88,41 @@ class StatsService
     purchases
   end
 
-  # Obtener conteo de compras agrupadas por tiempo
   def self.purchase_counts_by_time(params)
     purchases = filtered_purchases(params)
-    granularity = params[:granularity] || 'day'
+    granularity = params[:granularity]&.downcase || 'day'
 
-    format_string = case granularity.downcase
+    format_string = case granularity
     when 'hour'
-                      'YYYY-MM-DD HH24:00'
+      'YYYY-MM-DD HH24:00'
     when 'day'
-                      'YYYY-MM-DD'
+      'YYYY-MM-DD'
     when 'week'
-                      'YYYY-WW' # Au00f1o-Semana
+      'IYYY-IW'
     when 'year'
-                      'YYYY'
+      'YYYY'
     else
-                      'YYYY-MM-DD' # Default a du00eda
+      'YYYY-MM-DD'
     end
 
-    # Usar TO_CHAR para PostgreSQL en lugar de DATE_FORMAT
     counts = purchases.group("TO_CHAR(purchases.created_at, '#{format_string}')").count
 
-    counts.transform_keys do |key|
-      case granularity.downcase
-      when 'hour'
-        key
-      when 'day'
+    formatted_counts = {}
+
+    counts.each do |key, value|
+      formatted_key = case granularity
+      when 'hour', 'day', 'year'
         key
       when 'week'
         year, week = key.split('-')
-        "Semana #{week} de #{year}"
-      when 'year'
-        key
+        "Week #{week} of #{year}"
       else
         key
       end
+
+      formatted_counts[formatted_key] = value
     end
+
+    formatted_counts
   end
 end

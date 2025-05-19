@@ -60,4 +60,7 @@ group :development, :test do
 
   # Search for N+1 queries
   gem 'bullet', '~> 8.0'
+
+  # View emails in the browser instead of sending them
+  gem 'letter_opener', '~> 1.10'
 end

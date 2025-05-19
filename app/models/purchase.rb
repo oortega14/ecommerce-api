@@ -8,20 +8,15 @@ class Purchase < ApplicationRecord
   validates :total_price, presence: true, numericality: { greater_than: 0 }
 
   # Callbacks
-  after_commit :handle_first_purchase_email, on: :create
-  after_create :send_first_purchase_notification
+  after_commit :check_first_purchase, on: :create
 
   private
 
-  def handle_first_purchase_email
-    FirstPurchaseEmailJob.perform_later(client_id, id)
-  end
+  def check_first_purchase
+    product_key = "product_first_purchase:#{product_id}"
 
-  # Enviar notificaciu00f3n de primera compra si es la primera vez que se compra el producto
-  def send_first_purchase_notification
-    # Verificar si es la primera compra para este producto
-    if product.purchases.count == 1
-      # Enviar correo al creador del producto y cc a otros administradores
+    result = $redis.set(product_key, 1, nx: true, ex: 86400)
+    if result && product.purchases.count == 1
       ProductMailer.first_purchase_notification(product, self).deliver_later
     end
   end

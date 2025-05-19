@@ -3,6 +3,8 @@ class ApplicationController < ActionController::API
   # Rescue From
   rescue_from ApiExceptions::BaseException, with: :render_error_response
 
+  before_action :set_audited_user
+
   def render_error_response(error)
     error_response = {
       error: {
@@ -68,5 +70,9 @@ class ApplicationController < ActionController::API
 
   def jwt_secret_key
     Rails.application.credentials.jwt[:secret_key]
+  end
+
+  def set_audited_user
+    Audited.store[:audited_user] = current_user if current_user
   end
 end

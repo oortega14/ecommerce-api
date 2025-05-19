@@ -2,9 +2,6 @@ class User < ApplicationRecord
   # Security
   has_secure_password
 
-  # Auditing
-  audited
-
   # Enums
   enum :role, { :client=>0, :admin=>1 }
 
